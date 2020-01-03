@@ -1,6 +1,6 @@
-const { transform, saveYaml } = require('@midwayjs/spec-builder');
-const { existsSync } = require('fs');
-const { resolve } = require('path');
+import { transform, saveYaml } from '@midwayjs/spec-builder';
+import { existsSync } from 'fs';
+import { resolve } from 'path';
 
 export const getSpecFile = baseDir => {
   const specPath = [
@@ -12,7 +12,7 @@ export const getSpecFile = baseDir => {
   if (specPath) {
     return {
       type: 'yaml',
-      path: resolve(baseDir, specPath)
+      path: resolve(baseDir, specPath),
     };
   }
   return {};

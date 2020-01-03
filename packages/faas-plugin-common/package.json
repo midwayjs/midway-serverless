@@ -9,20 +9,15 @@
     "@midwayjs/runtime-mock": "^0.1.12",
     "@midwayjs/spec-builder": "^0.1.5",
     "co": "^4.6.0",
-    "midway-bin": "^1.15.1",
+    "midway-bin": "1",
     "minimist": "^1.2.0",
     "ts-node": "^8.5.2",
     "urllib": "^2.34.1",
     "websocket": "^1.0.30"
   },
-  "devDependencies": {
-    "@types/mocha": "^5.2.5",
-    "midway-bin": "1"
-  },
   "files": [
     "src",
-    "dist",
-    "package.json"
+    "dist"
   ],
   "scripts": {
     "build": "npm run lint && midway-bin build -c",

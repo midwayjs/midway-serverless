@@ -1,33 +1,27 @@
-
-const BasePlugin = require('@midwayjs/command-core/dist/plugin');
+import { BasePlugin } from '@midwayjs/command-core';
 import { TestCommand, CovCommand } from 'midway-bin';
 import * as co from 'co';
 import { existsSync } from 'fs';
 import { join } from 'path';
 
-export default class Test extends BasePlugin {
-  constructor(core, options) {
-    super(core, options);
-  }
+export class Test extends BasePlugin {
   commands = {
     test: {
       usage: 'Test a Serverless service',
-      lifecycleEvents: [
-        'test',
-      ],
+      lifecycleEvents: ['test'],
       options: {
         cov: {
           usage: 'get code coverage report',
-          shortcut: 'c'
+          shortcut: 'c',
         },
         watch: {
           usage: 'watch',
-          shortcut: 'w'
+          shortcut: 'w',
         },
         reporter: {
           usage: 'set mocha reporter',
-          shortcut: 'r'
-        }
+          shortcut: 'r',
+        },
       },
     },
   };
@@ -39,7 +33,7 @@ export default class Test extends BasePlugin {
       const Command = options.cov ? CovCommand : TestCommand;
       const servicePath = this.core.config.servicePath;
       const tester = new Command();
-      await co(function* () {
+      await co(function*() {
         process.env.TS_NODE_FILES = 'true';
         yield tester.run({
           cwd: servicePath,
@@ -50,11 +44,11 @@ export default class Test extends BasePlugin {
             watch: options.watch,
             extension: 'ts,js',
             reporter: options.reporter,
-            typescript: existsSync(join(servicePath, 'tsconfig.json'))
+            typescript: existsSync(join(servicePath, 'tsconfig.json')),
           }),
-          execArgv: process.execArgv
+          execArgv: process.execArgv,
         });
       });
-    }
+    },
   };
 }

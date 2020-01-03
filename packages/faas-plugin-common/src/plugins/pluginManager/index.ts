@@ -1,10 +1,9 @@
-const BasePlugin = require('@midwayjs/command-core/dist/plugin');
-const { getCoreBaseDir } = require('@midwayjs/command-core/dist/npm');
+import { BasePlugin, getCoreBaseDir } from '@midwayjs/command-core';
 import { existsSync, readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { exec } from 'child_process';
 
-class PluginManager extends BasePlugin {
+export class PluginManager extends BasePlugin {
   commands = {
     plugin: {
       usage: 'manage plugins',
@@ -138,5 +137,3 @@ class PluginManager extends BasePlugin {
     });
   }
 }
-
-export default PluginManager;

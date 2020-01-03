@@ -1,12 +1,7 @@
 import { invoke } from './main';
-const BasePlugin = require('@midwayjs/command-core/dist/plugin');
+import { BasePlugin } from '@midwayjs/command-core';
 
-export default class Invoke extends BasePlugin {
-
-  constructor(core, options) {
-    super(core, options);
-  }
-
+export class Invoke extends BasePlugin {
   commands = {
     invoke: {
       usage: '',
@@ -14,21 +9,21 @@ export default class Invoke extends BasePlugin {
       options: {
         function: {
           usage: 'function name',
-          shortcut: 'f'
+          shortcut: 'f',
         },
         data: {
           usage: 'function args',
-          shortcut: 'd'
+          shortcut: 'd',
         },
         debug: {
-          usage: 'debug function'
+          usage: 'debug function',
         },
         trigger: {
           usage: 'trigger name',
-          shortcut: 't'
-        }
-      }
-    }
+          shortcut: 't',
+        },
+      },
+    },
   };
 
   hooks = {
@@ -43,14 +38,15 @@ export default class Invoke extends BasePlugin {
       this.core.cli.log('--------- result start --------');
       this.core.cli.log(JSON.stringify(result));
       this.core.cli.log('--------- result end --------');
-    }
+    },
   };
 
   async invokeFun(functionName: string) {
     const allFunctions = this.core.service.functions || {};
     const funcConf = allFunctions[functionName];
     const layersList = [{}, this.core.service.layers || {}];
-    const providerName = this.core.service.provider && this.core.service.provider.name;
+    const providerName =
+      this.core.service.provider && this.core.service.provider.name;
     let eventResult = [];
     if (funcConf) {
       const events = funcConf.events;
@@ -65,7 +61,11 @@ export default class Invoke extends BasePlugin {
 
     const layers = Object.assign.apply({}, layersList);
 
-    const eventOptions = this.getEventOptions(providerName, this.options.event || this.options.trigger || eventResult[0]) || {};
+    const eventOptions =
+      this.getEventOptions(
+        providerName,
+        this.options.event || this.options.trigger || eventResult[0]
+      ) || {};
 
     const options = {
       functionDir: this.core.config.servicePath,
@@ -74,7 +74,7 @@ export default class Invoke extends BasePlugin {
       data: this.options.data || '{}',
       handler: funcConf.handler,
       layers,
-      ...eventOptions
+      ...eventOptions,
     };
     return invoke(options);
   }
@@ -84,7 +84,7 @@ export default class Invoke extends BasePlugin {
     return {
       starter: '',
       eventPath: '',
-      eventName: ''
+      eventName: '',
     };
   }
 }
