@@ -1,4 +1,4 @@
-import * as BasePlugin from '../../dist/plugin';
+import { BasePlugin } from '../../src';
 
 class OnePlugin extends BasePlugin {
   provider = 'one';

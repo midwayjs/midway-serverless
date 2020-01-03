@@ -1,8 +1,9 @@
-import * as CommandHookCore from '..';
+import { CommandHookCore } from '../src';
 import InvokePlugin from './plugins/test.invoke';
 import LogPlugin from './plugins/test.lg';
 import OnePlugin from './plugins/one.common';
 import * as assert from 'assert';
+
 describe('load plugin', () => {
   it('sigle plugin and lifecycleEvents', async () => {
     const core = new CommandHookCore({
@@ -12,7 +13,9 @@ describe('load plugin', () => {
     core.addPlugin(InvokePlugin);
     await core.ready();
     const allCommands = core.getCommands();
-    assert(allCommands.invoke && allCommands.invoke.lifecycleEvents.length === 2);
+    assert(
+      allCommands.invoke && allCommands.invoke.lifecycleEvents.length === 2
+    );
   });
 
   it('multi plugins', async () => {

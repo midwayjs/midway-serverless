@@ -12,7 +12,6 @@
     "f": "bin/fun.js"
   },
   "devDependencies": {
-    "@types/mocha": "^5.2.5",
     "midway-bin": "1"
   },
   "files": [

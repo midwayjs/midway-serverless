@@ -5,7 +5,7 @@ import {
 } from './interface/plugin';
 import { ICoreInstance } from './interface/commandHookCore';
 
-export = class BasePlugin implements IPluginInstance {
+export class BasePlugin implements IPluginInstance {
   public core: ICoreInstance;
   public options: any;
   public commands: IPluginCommands;
@@ -16,4 +16,4 @@ export = class BasePlugin implements IPluginInstance {
     this.commands = {};
     this.hooks = {};
   }
-};
+}
