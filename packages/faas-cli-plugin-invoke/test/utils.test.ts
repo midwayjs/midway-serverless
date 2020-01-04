@@ -1,4 +1,4 @@
-import { loadSpec } from '../src/utils/loadSpec';
+import { loadSpec } from '@midwayjs/fcli-command-core';
 import * as assert from 'assert';
 describe('/test/utils.test.ts', () => {
   it('loadSpec', async () => {
