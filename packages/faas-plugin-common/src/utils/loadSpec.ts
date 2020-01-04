@@ -1,4 +1,4 @@
-import { transform, saveYaml } from '@midwayjs/spec-builder';
+import { transform, saveYaml } from '@midwayjs/serverless-spec-builder';
 import { existsSync } from 'fs';
 import { resolve } from 'path';
 

@@ -1,3 +1,5 @@
 export * from './cli';
-export { Invoke as InvokeClass } from './plugins/invoke';
-export { Test } from './plugins/test';
+export * from './plugins/invoke';
+export * from './plugins/test';
+export * from './plugins/pluginManager';
+export { invoke } from './plugins/invoke/main';

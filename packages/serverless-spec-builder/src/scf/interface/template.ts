@@ -1,4 +1,4 @@
-import { FunctionsStructure, FunctionStructure } from '@midwayjs/spec-builder';
+import { FunctionsStructure, FunctionStructure } from '../../interface';
 
 export interface SCFTemplateSpec {
   Globals?: {

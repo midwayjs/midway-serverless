@@ -1,4 +1,4 @@
-import { FunctionsStructure, FunctionStructure } from '@midwayjs/spec-builder';
+import { FunctionsStructure, FunctionStructure } from '../interface';
 
 export interface FCSpec {
   ROSTemplateFormatVersion: string;
@@ -81,8 +81,8 @@ export interface FCOSSEvent {
       Key: {
         Prefix: string;
         Suffix: string;
-      }
-    },
+      };
+    };
     Enable: boolean;
     InvocationRole?: string;
     Qualifier?: string;
@@ -128,8 +128,8 @@ export interface FCCustomDomainSpec {
           ServiceName: string;
           FunctionName: string;
         };
-      }
-    }
+      };
+    };
   };
 }
 

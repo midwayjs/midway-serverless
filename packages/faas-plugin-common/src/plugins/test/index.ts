@@ -4,7 +4,7 @@ import * as co from 'co';
 import { existsSync } from 'fs';
 import { join } from 'path';
 
-export class Test extends BasePlugin {
+export class TestPlugin extends BasePlugin {
   commands = {
     test: {
       usage: 'Test a Serverless service',

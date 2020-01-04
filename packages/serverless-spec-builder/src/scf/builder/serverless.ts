@@ -4,7 +4,7 @@ import {
   ProviderStructure,
   ScheduleEvent,
   SpecBuilder,
-} from '@midwayjs/spec-builder';
+} from '../../index';
 import { SCFFunctionsStructure, SCFHTTPEventType } from '../interface/template';
 import {
   ApiGateway,
@@ -73,7 +73,7 @@ export class SCFServerlessSpecBuilder extends SpecBuilder {
               serviceId:
                 (providerData as any).serviceId || (evt as any).serviceId,
               integratedResponse: true,
-              enableCORS: (providerData as any).cors || (evt as any).cors
+              enableCORS: (providerData as any).cors || (evt as any).cors,
             },
           };
 

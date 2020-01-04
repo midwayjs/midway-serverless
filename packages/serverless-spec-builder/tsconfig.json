@@ -17,7 +17,9 @@
   "exclude": [
     "dist",
     "node_modules",
-    "test"
+    "test",
+    "fc",
+    "scf",
+    "aws"
   ]
 }
-

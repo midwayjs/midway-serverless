@@ -7,7 +7,7 @@
     "@midwayjs/command-core": "^0.1.12",
     "@midwayjs/faas": "^0.1.5",
     "@midwayjs/runtime-mock": "^0.1.12",
-    "@midwayjs/spec-builder": "^0.1.5",
+    "@midwayjs/serverless-spec-builder": "^0.1.5",
     "co": "^4.6.0",
     "midway-bin": "1",
     "minimist": "^1.2.0",

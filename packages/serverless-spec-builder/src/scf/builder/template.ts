@@ -3,7 +3,7 @@ import {
   ProviderStructure,
   ScheduleEvent,
   SpecBuilder,
-} from '@midwayjs/spec-builder';
+} from '../../';
 import {
   SCFFunctionSpec,
   SCFFunctionsStructure,

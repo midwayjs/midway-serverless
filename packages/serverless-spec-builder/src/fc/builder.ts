@@ -1,12 +1,4 @@
 import {
-  HTTPEvent,
-  LogEvent,
-  OsEvent,
-  ProviderStructure,
-  ScheduleEvent,
-  SpecBuilder,
-} from '@midwayjs/spec-builder';
-import {
   FCCustomDomainSpec,
   FCFunctionSpec,
   FCFunctionsStructure,
@@ -14,6 +6,14 @@ import {
   FCSpec,
   HTTPEventType,
 } from './interface';
+import { SpecBuilder } from '../builder';
+import {
+  ProviderStructure,
+  HTTPEvent,
+  ScheduleEvent,
+  LogEvent,
+  OsEvent,
+} from '../interface';
 
 export class FCSpecBuilder extends SpecBuilder {
   toJSON() {

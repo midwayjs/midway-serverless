@@ -2,15 +2,11 @@ import { CommandHookCore } from '@midwayjs/command-core';
 import * as minimist from 'minimist';
 import { join } from 'path';
 import { loadSpec } from './utils/loadSpec';
-import { PluginManager as CommandPlugin } from './plugins/pluginManager';
-import { Invoke as CommandInvoke } from './plugins/invoke';
-import { Test as CommandTest } from './plugins/test';
+import { PluginManager } from './plugins/pluginManager';
+import { InvokePlugin } from './plugins/invoke';
+import { TestPlugin } from './plugins/test';
 
-export * from './plugins/invoke/main';
-export const InvokeClass = CommandInvoke;
-export const Test = CommandTest;
-
-export class CLI {
+export class BaseCLI {
   argv: any;
   providerName: string;
   core: any;
@@ -42,21 +38,9 @@ export class CLI {
 
   // 加载默认插件
   loadDefaultPlugin() {
-    this.loadCommandPlugin();
-    this.loadCommandInvoke();
-    this.loadCommandTest();
-  }
-
-  loadCommandPlugin() {
-    this.core.addPlugin(CommandPlugin);
-  }
-
-  loadCommandInvoke() {
-    this.core.addPlugin(CommandInvoke);
-  }
-
-  loadCommandTest() {
-    this.core.addPlugin(CommandTest);
+    this.core.addPlugin(PluginManager);
+    this.core.addPlugin(InvokePlugin);
+    this.core.addPlugin(TestPlugin);
   }
 
   // 加载平台方插件

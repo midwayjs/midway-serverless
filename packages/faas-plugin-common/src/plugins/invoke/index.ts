@@ -1,7 +1,7 @@
 import { invoke } from './main';
 import { BasePlugin } from '@midwayjs/command-core';
 
-export class Invoke extends BasePlugin {
+export class InvokePlugin extends BasePlugin {
   commands = {
     invoke: {
       usage: '',

@@ -1,4 +1,4 @@
-# spec builder
+# serverless spec builder
 
 FaaS 标准 Spec 解析工具，以及用于其他平台 spec 转换的基础定义。
 
