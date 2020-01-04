@@ -3,7 +3,7 @@ import { IFaaSStarter } from './interface';
 import { FaaSStarterClass, Debug_Tag } from './utils';
 import { createRuntime } from '@midwayjs/runtime-mock';
 import { faasDebug } from './debug';
-import { loadSpec } from '../../utils/loadSpec';
+import { loadSpec } from '@midwayjs/fcli-command-core';
 
 const extensionsReg = {
   npm: /npm:\s*(.*?)\s*$/i,
@@ -11,7 +11,6 @@ const extensionsReg = {
 };
 
 export class Local {
-
   ctx = {};
   opts;
   baseDir: string;
@@ -52,16 +51,20 @@ export class Local {
     if (!this.isReady) {
       this.prepare();
       const preloadModules = [];
-      this.starter = new FaaSStarterClass(Object.assign({
-        preloadModules
-      }, this.opts));
+      this.starter = new FaaSStarterClass(
+        Object.assign(
+          {
+            preloadModules,
+          },
+          this.opts
+        )
+      );
       await this.starter.start();
       this.isReady = true;
     }
   }
 
   prepare() {
-
     if (!this.handler || !this.layers) {
       this.getSpecInfo(this.functionName);
     }
@@ -77,7 +80,10 @@ export class Local {
         if (extensionsReg.npm.test(extInfo.path)) {
           extPath = extensionsReg.npm.exec(extInfo.path)[1];
         } else if (extensionsReg.local.test(extInfo.path)) {
-          extPath = join(this.baseDir, extensionsReg.local.exec(extInfo.path)[1]);
+          extPath = join(
+            this.baseDir,
+            extensionsReg.local.exec(extInfo.path)[1]
+          );
         }
         if (extPath) {
           try {
@@ -96,7 +102,6 @@ export class Local {
   }
 
   async invoke(...args) {
-
     await this.ready();
     this.createAnonymousContext();
     let isDebug = false;
@@ -123,7 +128,7 @@ export class Local {
     if (this.opts.starter) {
       try {
         const starter = require(this.opts.starter);
-        handler =  starter.asyncWrapper(async (...args) => {
+        handler = starter.asyncWrapper(async (...args) => {
           const innerRuntime = await starter.start({});
           return innerRuntime.asyncEvent(innerFun)(...args);
         });
@@ -133,7 +138,7 @@ export class Local {
     if (this.opts.runtime) {
       try {
         const runtimeClass = require(this.opts.runtime);
-        othRuntime =  new runtimeClass();
+        othRuntime = new runtimeClass();
       } catch (e) {}
     }
 
@@ -141,7 +146,7 @@ export class Local {
       runtime = createRuntime({
         handler,
         runtime: othRuntime,
-        layers: this.extensions || []
+        layers: this.extensions || [],
       });
     }
     if (this.opts.event) {
@@ -173,7 +178,11 @@ export class Local {
     const specResult = loadSpec(this.baseDir);
     const layersList = [{}, specResult.layers || {}];
     let handler;
-    if (specResult && specResult.functions && specResult.functions[functionName]) {
+    if (
+      specResult &&
+      specResult.functions &&
+      specResult.functions[functionName]
+    ) {
       const funData = specResult.functions[functionName];
       handler = funData.handler;
       if (funData.runtimeExtensions) {

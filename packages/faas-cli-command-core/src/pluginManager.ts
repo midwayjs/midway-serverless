@@ -1,7 +1,7 @@
-import { BasePlugin, getCoreBaseDir } from '@midwayjs/command-core';
 import { existsSync, readdirSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { exec } from 'child_process';
+import { BasePlugin, getCoreBaseDir } from '.';
 
 export class PluginManager extends BasePlugin {
   commands = {

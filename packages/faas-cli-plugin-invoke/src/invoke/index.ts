@@ -1,5 +1,5 @@
 import { invoke } from './main';
-import { BasePlugin } from '@midwayjs/command-core';
+import { BasePlugin } from '@midwayjs/fcli-command-core';
 
 export class InvokePlugin extends BasePlugin {
   commands = {

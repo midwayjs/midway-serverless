@@ -4,7 +4,9 @@
   "main": "dist/index",
   "typings": "dist/index.d.ts",
   "dependencies": {
-    "@midwayjs/faas-plugin-common": "^0.1.12",
+    "@midwayjs/fcli-command-core": "^0.1.12",
+    "@midwayjs/fcli-plugin-invoke": "^0.1.12",
+    "@midwayjs/fcli-plugin-test": "^0.1.12",
     "@midwayjs/invoke": "^0.1.12"
   },
   "bin": {

@@ -1,4 +1,4 @@
-import { BasePlugin } from '@midwayjs/command-core';
+import { BasePlugin } from '@midwayjs/fcli-command-core';
 import { TestCommand, CovCommand } from 'midway-bin';
 import * as co from 'co';
 import { existsSync } from 'fs';

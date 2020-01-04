@@ -1,6 +1,7 @@
 import { ProviderBase } from '../../core/providerBase';
 import { IServerlessOptions } from '../../interface/midwayServerless';
-import { InvokePlugin, TestPlugin } from '@midwayjs/faas-plugin-common';
+import { InvokePlugin } from '@midwayjs/fcli-plugin-invoke';
+import { TestPlugin } from '@midwayjs/fcli-plugin-test';
 import { Package } from './package';
 import { Deploy } from './deploy';
 

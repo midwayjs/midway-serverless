@@ -1,13 +1,9 @@
-import {
-  BaseCLI,
-  PluginManager,
-  TestPlugin,
-} from '@midwayjs/faas-plugin-common';
+import { BaseCLI } from '@midwayjs/fcli-command-core';
+import { TestPlugin } from '@midwayjs/fcli-plugin-test';
 import { Invoke } from './invoke.plugin';
 
 export class CLI extends BaseCLI {
-  loadDefaultCommand() {
-    this.core.addPlugin(PluginManager);
+  loadDefaultPlugin() {
     this.core.addPlugin(Invoke);
     this.core.addPlugin(TestPlugin);
   }

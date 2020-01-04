@@ -1,10 +1,8 @@
-import { CommandHookCore } from '@midwayjs/command-core';
 import * as minimist from 'minimist';
 import { join } from 'path';
 import { loadSpec } from './utils/loadSpec';
-import { PluginManager } from './plugins/pluginManager';
-import { InvokePlugin } from './plugins/invoke';
-import { TestPlugin } from './plugins/test';
+import { CommandHookCore } from './core';
+import { PluginManager } from './pluginManager';
 
 export class BaseCLI {
   argv: any;
@@ -31,17 +29,18 @@ export class BaseCLI {
       log: this.loadLog(),
       extensions: this.loadExtensions(),
     });
+    this.loadCorePlugin();
     this.loadDefaultPlugin();
     this.loadPlatformPlugin();
     this.loadUserPlugin();
   }
 
-  // 加载默认插件
-  loadDefaultPlugin() {
+  loadCorePlugin() {
     this.core.addPlugin(PluginManager);
-    this.core.addPlugin(InvokePlugin);
-    this.core.addPlugin(TestPlugin);
   }
+
+  // 加载默认插件
+  loadDefaultPlugin() {}
 
   // 加载平台方插件
   loadPlatformPlugin() {}

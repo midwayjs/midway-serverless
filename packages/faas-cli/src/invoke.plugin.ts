@@ -1,4 +1,4 @@
-import { InvokePlugin as BaseInvokePlugin } from '@midwayjs/faas-plugin-common';
+import { InvokePlugin as BaseInvokePlugin } from '@midwayjs/fcli-plugin-invoke';
 import { runtimeEventMap } from '@midwayjs/invoke';
 
 export class Invoke extends BaseInvokePlugin {
