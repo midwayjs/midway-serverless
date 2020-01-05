@@ -5,6 +5,7 @@
   "typings": "dist/index.d.ts",
   "dependencies": {
     "@midwayjs/fcli-command-core": "^0.1.12",
+    "@midwayjs/runtime-mock": "^0.1.12",
     "@midwayjs/serverless-fc-starter": "^0.1.12",
     "@midwayjs/serverless-fc-trigger": "^0.1.12",
     "@midwayjs/serverless-scf-starter": "^0.1.12",
