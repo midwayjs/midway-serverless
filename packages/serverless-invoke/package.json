@@ -15,7 +15,8 @@
     "websocket": "^1.0.30"
   },
   "devDependencies": {
-    "midway-bin": "1"
+    "midway-bin": "1",
+    "@midwayjs/faas": "^0.1.5"
   },
   "files": [
     "dist",
