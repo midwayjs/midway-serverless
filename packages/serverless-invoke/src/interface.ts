@@ -26,9 +26,9 @@ export interface InvokeOptions {
   data?: any[]; // 函数入参
   log?: boolean; // 是否进行console输出
   trigger?: string; // 触发器
-  runtime?: string; // 运行时环境
+  provider?: string; // 部署的环境
   debugCb?: any;
-  runtimeEventMap?: any;
+  providerEventMap?: any;
   starter?: any;
   eventPath?: string;
   eventName?: string;

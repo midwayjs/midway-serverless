@@ -1,7 +1,7 @@
 import { invoke as InvokeFun } from './main';
 import { InvokeOptions } from './interface';
 
-export const defualtRuntimeEventMap = {
+export const defualtProviderEventMap = {
   fc: {
     starter: require.resolve('@midwayjs/serverless-fc-starter'),
     eventPath: require.resolve('@midwayjs/serverless-fc-trigger'),
@@ -16,9 +16,9 @@ export const defualtRuntimeEventMap = {
 };
 
 export const invoke = (options: InvokeOptions) => {
-  const { runtime, trigger } = options;
-  const runtimeEventMap = options.runtimeEventMap || defualtRuntimeEventMap;
-  const runtimeMap = runtimeEventMap[runtime] || {};
+  const { provider, trigger } = options;
+  const providerEventMap = options.providerEventMap || defualtProviderEventMap;
+  const runtimeMap = providerEventMap[provider] || {};
 
   const starter = runtimeMap.starter;
   const eventPath = runtimeMap.eventPath;
