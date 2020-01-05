@@ -9,7 +9,6 @@ describe('/test/index.test.ts', () => {
       functionDir: join(__dirname, 'fixtures/baseApp'),
       functionName: 'http',
       data: [{ name: 'params' }],
-      nolog: false,
     });
     assert(result && result.body === 'hello http world');
   });
