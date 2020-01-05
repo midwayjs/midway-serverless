@@ -1,7 +1,8 @@
-import { invoke as InvokeFun } from '@midwayjs/fcli-plugin-invoke';
+import { invoke as InvokeFun } from './main';
+import { InvokeOptions } from './interface';
 
-export const runtimeEventMap = {
-  aliyun: {
+export const defualtRuntimeEventMap = {
+  fc: {
     starter: require.resolve('@midwayjs/serverless-fc-starter'),
     eventPath: require.resolve('@midwayjs/serverless-fc-trigger'),
     eventName: {
@@ -9,21 +10,14 @@ export const runtimeEventMap = {
       apiGateway: 'ApiGatewayTrigger',
     },
   },
-  tencent: {
+  scf: {
     starter: require.resolve('@midwayjs/serverless-scf-starter'),
   },
 };
 
-export const invoke = (options: {
-  functionDir?: string; // 函数所在目录
-  functionName: string; // 函数名
-  debug?: string; // debug 端口
-  data?: any[]; // 函数入参
-  log?: boolean; // 是否进行console输出
-  trigger?: string; // 触发器
-  runtime?: string; // 运行时环境
-}) => {
+export const invoke = (options: InvokeOptions) => {
   const { runtime, trigger } = options;
+  const runtimeEventMap = options.runtimeEventMap || defualtRuntimeEventMap;
   const runtimeMap = runtimeEventMap[runtime] || {};
 
   const starter = runtimeMap.starter;

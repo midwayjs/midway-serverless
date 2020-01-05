@@ -1,6 +1,8 @@
 import { join } from 'path';
 import { fork } from 'child_process';
 import { get, getWssUrl } from './utils';
+import { InvokeOptions } from './interface';
+
 const getTsPath = () => {
   try {
     return join(require.resolve('ts-node'), '../../register');
@@ -19,20 +21,7 @@ const makeDebugPort = debug => {
   return '';
 };
 
-export const invoke = (options: {
-  functionDir?: string; // 函数所在目录
-  functionName: string; // 函数名
-  debug?: string; // debug 端口
-  data?: any[]; // 函数入参
-  log?: boolean; // 是否进行console输出
-  starter?: string; // starter包名或路径
-  eventPath?: string; // trigger包名或路径
-  eventName?: string; // 触发器名称
-  layers?: any; // layer配置 , 不填会从yml中获取
-  handler?: string; // handler, 不填会从yml中获取
-  midwayModuleName?: string; // midway module name e.g. @midwayjs/faas
-  debugCb?: any; // debug 回调
-}) => {
+export const invoke = (options: InvokeOptions) => {
   const {
     functionName,
     debug,
