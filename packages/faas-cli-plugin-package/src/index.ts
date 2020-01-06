@@ -1,12 +1,13 @@
 import { BasePlugin } from '@midwayjs/fcli-command-core';
-import { join } from 'path';
-import { copy, ensureDir, existsSync, remove, writeFileSync, readFileSync } from 'fs-extra';
+import { join, resolve } from 'path';
+import { copy, createWriteStream, ensureDir, existsSync, remove, writeFileSync, readFileSync, statSync, unlinkSync } from 'fs-extra';
 import * as globby from 'globby';
 import { formatLayers } from './utils';
-import { TsBuild } from './tscompile';
+import { BuildCommand } from 'midway-bin';
 import { exec } from 'child_process';
+import * as archiver from 'archiver';
 
-export class TestPlugin extends BasePlugin {
+export class PackagePlugin extends BasePlugin {
   core: any;
   options: any;
   servicePath = this.core.config.servicePath;
@@ -43,7 +44,8 @@ export class TestPlugin extends BasePlugin {
     'package:copyFile': this.copyFile.bind(this),
     'package:layerInstall': this.layerInstall.bind(this),
     'package:depInstall': this.depInstall.bind(this),
-    'package:tscompile': this.tscompile.bind(this)
+    'package:tscompile': this.tscompile.bind(this),
+    'package:package': this.package.bind(this)
   };
 
   async cleanup() {
@@ -57,8 +59,8 @@ export class TestPlugin extends BasePlugin {
 
   async copyFile() {
     const packageObj: any = this.core.service.package || {};
-    const include = await globby(['src', 'tsconfig.json', 'package.json'].concat(packageObj.include || []));
-    const exclude = await globby(packageObj.exclude || []);
+    const include = await globby(['src', 'tsconfig.json', 'package.json'].concat(packageObj.include || []), { cwd: this.servicePath });
+    const exclude = await globby(packageObj.exclude || [], { cwd: this.servicePath });
     const paths = include.filter((filePath: string) => {
       return exclude.indexOf(filePath) === -1;
     });
@@ -155,7 +157,7 @@ export class TestPlugin extends BasePlugin {
       // await buildByNcc();
     } else {
       this.core.cli.log(' - Using tradition build mode');
-      const builder = new TsBuild();
+      const builder = new BuildCommand();
       const servicePath: string = this.midwayBuildPath;
       await builder.run({
         cwd: servicePath,
@@ -168,5 +170,38 @@ export class TestPlugin extends BasePlugin {
       await remove(join(this.midwayBuildPath, 'src'));
     }
     this.core.cli.log(` - Build Midway FaaS complete`);
+  }
+
+  async package() {
+    // 跳过打包
+    const options: any = this.core.processedInput.options;
+    if (options.skipZip) {
+      return;
+    }
+    // 构建打包
+    const file = join(this.servicePath, 'serverless.zip');
+    await this.makeZip(this.midwayBuildPath, file);
+    const stat = statSync(file);
+    this.core.cli.log(` - Zip size ${Number(stat.size / (1024 * 1024)).toFixed(2)}MB`);
+    if (this.options.package) {
+      const to = resolve(this.servicePath, this.options.package);
+      await copy(file, to);
+      await unlinkSync(file);
+    }
+  }
+
+  makeZip(sourceDirection: string, targetFileName: string) {
+    return new Promise(resolve => {
+      const output = createWriteStream(targetFileName);
+      output.on('close', function () {
+        resolve(archive.pointer());
+      });
+      const archive = archiver('zip', {
+        zlib: { level: 9 }
+      });
+      archive.pipe(output);
+      archive.directory(sourceDirection, false);
+      archive.finalize();
+    });
   }
 }
