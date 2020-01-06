@@ -6,7 +6,8 @@
   "dependencies": {
     "@midwayjs/fcli-command-core": "^0.2.0",
     "@midwayjs/fcli-plugin-invoke": "^0.2.0",
-    "@midwayjs/fcli-plugin-test": "^0.2.0"
+    "@midwayjs/fcli-plugin-test": "^0.2.0",
+    "@midwayjs/fcli-plugin-package": "^0.2.0"
   },
   "bin": {
     "mf": "bin/fun.js",

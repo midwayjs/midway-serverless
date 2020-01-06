@@ -1,6 +1,8 @@
 import { CommandHookCore, loadSpec } from '@midwayjs/fcli-command-core';
 import { PackagePlugin } from '../src/index';
 import { resolve } from 'path';
+import { existsSync } from 'fs';
+import * as assert from 'assert';
 
 const baseDir = resolve(__dirname, './fixtures/base-app');
 
@@ -19,5 +21,6 @@ describe('package', () => {
     core.addPlugin(PackagePlugin);
     await core.ready();
     await core.invoke(['package']);
+    assert(existsSync(resolve(baseDir, '.serverless/dist/index.js')) && existsSync(resolve(baseDir, 'serverless.zip')));
   });
 });
