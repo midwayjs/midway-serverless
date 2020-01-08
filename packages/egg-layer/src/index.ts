@@ -59,7 +59,6 @@ export = (engine: RuntimeEngine) => {
   });
 };
 
-
 function makeRequest(fctx) {
   const { req } = fctx;
   const queryStr = querystring.stringify(req.query);
