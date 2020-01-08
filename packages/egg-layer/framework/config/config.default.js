@@ -4,7 +4,3 @@ exports.logger = {
 }
 
 exports.rundir = os.tmpdir()
-
-exports.static = {
-    dir: os.tmpdir()
-}
