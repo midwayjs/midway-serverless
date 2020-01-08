@@ -1,13 +1,20 @@
 export const wrapperContent = `const { FaaSStarter } = require('@midwayjs/faas');
-const { asyncWrapper, start } = require('@midwayjs/serverless-fc-starter');
+const { asyncWrapper, start } = require('@midwayjs/serverless-scf-starter');
 <% layerDeps.forEach(function(layer){ %>const <%=layer.name%> = require('<%=layer.path%>');
 <% }); %>
 
 let starter;
 let runtime;
 let inited = false;
+let handlerFunction;
+<% if (globalHandlerFunction) { %>
+handlerFunction = globalHandlerFunction;
+<% } %>
 
 const initializeMethod = async (config = {}) => {
+  if (inited) {
+    return;
+  }
   runtime = await start({
     layers: [<%= layers.join(", ") %>]
   });
@@ -26,13 +33,15 @@ exports.<%=handlerData.name%> = asyncWrapper(async (...args) => {
     await initializeMethod();
   }
   <% if (handlerData.handler) { %>
-  return runtime.asyncEvent(starter.handleInvokeWrapper('<%=handlerData.handler%>'))(...args);
+  const handler = handlerFunction || starter.handleInvokeWrapper('<%=handlerData.handler%>');
+  return runtime.asyncEvent(handler)(...args);
   <% } else { %>
   return runtime.asyncEvent(async (ctx) => {
     <% handlerData.handlers.forEach(function(multiHandler){ %> if (ctx && ctx.path === '<%=multiHandler.path%>') {
-      return starter.handleInvokeWrapper('<%=multiHandler.handler%>')(ctx);
+      const handler = handlerFunction || starter.handleInvokeWrapper('<%=multiHandler.handler%>');
+      return handler(ctx);
     } else <% }); %>{
-      return 'unhandler path: ' + (ctx && ctx.path || '');
+      return 'unhandler path';
     }
   })(...args);
   <% } %>

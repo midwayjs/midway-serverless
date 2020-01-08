@@ -10,6 +10,7 @@ import { FaaSStarterClass } from './utils';
 import { execSync } from 'child_process';
 import { resolve } from 'path';
 import { existsSync } from 'fs';
+import { loadSpec } from '@midwayjs/fcli-command-core';
 interface InvokeOptions {
   baseDir?: string;         // 目录，默认为process.cwd
   functionName: string;     // 函数名
@@ -17,21 +18,27 @@ interface InvokeOptions {
   getInvoke?: any;          // 获取调用方法
   debugPort?: string;       // debug端口
   handler?: string;         // 函数的handler方法
+  trigger?: string;         // 触发器
 }
 
 export class InvokeCore {
   options: InvokeOptions;
+  baseDir: string;
   starter: any;
+  spec: any;
 
   constructor(options: InvokeOptions) {
     this.options = options;
+    this.baseDir = options.baseDir || process.cwd();
+    this.spec = loadSpec(this.baseDir);
   }
 
   async getStarter() {
     if (this.starter) {
       return this.starter;
     }
-    const { baseDir = process.cwd(), functionName } = this.options;
+    const { functionName } = this.options;
+    const { baseDir } = this;
     const starter = new FaaSStarterClass({
       baseDir,
       functionName
@@ -41,27 +48,13 @@ export class InvokeCore {
     return this.starter;
   }
 
-  timeKey: any;
-  time(key?) {
-    if (this.timeKey) {
-      console.timeEnd(this.timeKey);
-    }
-    this.timeKey = key;
-    if (key) {
-      console.time(key);
-    }
-  }
-
   // 获取用户代码中的函数方法
   async getUserFaasHandlerFunction() {
-    const { debugPort, handler } = this.options;
-    this.time('build ts');
+    const { debugPort } = this.options;
+    const handler = this.options.handler || this.getFunctionInfo().handler || '';
     await this.buildTS();
-    this.time('getStarter');
     const starter = await this.getStarter();
-    this.time('handleInvokeWrapper');
     const wrapFun = starter.handleInvokeWrapper(handler, !!debugPort);
-    this.time();
     return async (...args) => {
       if (debugPort) {
         const handler = await wrapFun(...args);
@@ -69,6 +62,11 @@ export class InvokeCore {
       }
       return wrapFun(...args);
     };
+  }
+
+  getFunctionInfo(functionName?: string) {
+    functionName = functionName || this.options.functionName;
+    return this.spec && this.spec.functions && this.spec.functions[functionName] || {};
   }
 
   async getInvokeFunction() {
