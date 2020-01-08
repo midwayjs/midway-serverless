@@ -1,4 +1,4 @@
-const egg = require('@ali/egg');
+const egg = require('egg');
 
 const EGG_PATH = Symbol.for('egg#eggPath');
 exports.getFramework = (framework) => {

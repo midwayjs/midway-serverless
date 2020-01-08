@@ -1,5 +1,5 @@
-import { RuntimeEngine } from '@midwayjs/runtime-engine';
-import { join, resolve } from 'path';
+import { RuntimeEngine, Runtime } from '@midwayjs/runtime-engine';
+import { resolve } from 'path';
 import * as compose from 'koa-compose';
 import querystring = require('querystring');
 
@@ -8,30 +8,19 @@ const { start } = require('egg');
 export = (engine: RuntimeEngine) => {
   let eggApp;
   let proc;
-  let framework = '';
-  try {
-    // 从packagejson中获取egg框架
-    const packageJSON = require(join(process.env.ENTRY_DIR, 'package.json'));
-    framework = packageJSON.egg.framework;
-  } catch (e) {
-    //
-  }
 
   engine.addRuntimeExtension({
-    async beforeRuntimeStart(runtime) {
-      const baseDir = process.env.ENTRY_DIR;
-      try {
-        // 从packagejson中获取egg框架
-        const packageJSON = require(resolve(baseDir, 'package.json'));
-        framework = packageJSON.egg.framework;
-        require('./framework').getFramework(resolve(baseDir, 'node_modules', framework));
-      } catch (e) {
-        console.log(e);
-        //
-      }
+    async beforeRuntimeStart(runtime: Runtime) {
+      let framework = '';
+      const baseDir = runtime.getPropertyParser().getEntryDir();
+      // 从packagejson中获取egg框架
+      const packageJSON = require(resolve(baseDir, 'package.json'));
+      framework = packageJSON.egg && packageJSON.egg.framework;
+      const localFrameWorkPath = resolve(__dirname, '../framework');
+      require(localFrameWorkPath).getFramework(framework && resolve(baseDir, 'node_modules', framework));
       eggApp = await start({
         baseDir,
-        framework: resolve(__dirname, 'framework'),
+        framework: localFrameWorkPath,
         mode: 'single',
         runtime,
       });
