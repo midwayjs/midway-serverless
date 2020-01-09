@@ -3,25 +3,20 @@ import { createRuntime } from '@midwayjs/runtime-mock';
 import * as FCStarter from '@midwayjs/serverless-fc-starter';
 import * as FCTrigger from '@midwayjs/serverless-fc-trigger';
 import * as SCFStarter from '@midwayjs/serverless-scf-starter';
+
 export class Invoke extends InvokeCore {
   async getInvokeFunction() {
-    let invoke = await this.getUserFaasHandlerFunction();
+    let invoke;
     let runtime;
     let triggerMap;
     const provider = this.spec && this.spec.provider && this.spec.provider.name;
     if (provider) {
       let handler: any = ''; // todo
       if (provider === 'fc') {
-        handler = FCStarter.asyncWrapper(async (...args) => {
-          const innerRuntime = await FCStarter.start({});
-          return innerRuntime.asyncEvent(invoke)(...args);
-        });
+        handler = await this.loadHandler(FCStarter.wrapperContent);
         triggerMap = FCTrigger;
       } else if (provider === 'scf') {
-        handler = SCFStarter.asyncWrapper(async (...args) => {
-          const innerRuntime = await SCFStarter.start({});
-          return innerRuntime.asyncEvent(invoke)(...args);
-        });
+        handler = await this.loadHandler(SCFStarter.wrapperContent);
       }
       if (handler) {
         runtime = createRuntime({
@@ -29,6 +24,7 @@ export class Invoke extends InvokeCore {
         });
       }
     }
+
     if (runtime) {
       invoke = async (...args) => {
         const trigger = this.getTrigger(triggerMap, args);
@@ -37,6 +33,9 @@ export class Invoke extends InvokeCore {
         await runtime.close();
         return result;
       };
+    }
+    if (!invoke) {
+      invoke = await this.getUserFaasHandlerFunction();
     }
     return invoke;
   }

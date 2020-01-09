@@ -5,20 +5,20 @@
   2. tsc编译用户代码到dist目录
   3. 开源版: 【创建runtime、创建trigger】封装为平台invoke包，提供getInvoke方法，会传入args与入口方法，返回invoke方法
 */
-import { faasDebug } from './debug';
 import { FaaSStarterClass } from './utils';
 import { execSync } from 'child_process';
-import { resolve } from 'path';
-import { existsSync } from 'fs';
+import { resolve, join } from 'path';
+import { existsSync, writeFileSync, ensureDirSync } from 'fs-extra';
 import { loadSpec } from '@midwayjs/fcli-command-core';
+import { render } from 'ejs';
+
 interface InvokeOptions {
   baseDir?: string;         // 目录，默认为process.cwd
   functionName: string;     // 函数名
-  args?: any[];             // 调用参数
-  getInvoke?: any;          // 获取调用方法
-  debugPort?: string;       // debug端口
+  isDebug?: boolean;         // 是否debug
   handler?: string;         // 函数的handler方法
   trigger?: string;         // 触发器
+  buildDir?: string;        // 构建目录
 }
 
 export class InvokeCore {
@@ -26,10 +26,13 @@ export class InvokeCore {
   baseDir: string;
   starter: any;
   spec: any;
+  buildDir: string;
 
   constructor(options: InvokeOptions) {
     this.options = options;
     this.baseDir = options.baseDir || process.cwd();
+    this.buildDir = resolve(this.baseDir, options.buildDir || 'dist');
+    ensureDirSync(this.buildDir);
     this.spec = loadSpec(this.baseDir);
   }
 
@@ -38,9 +41,8 @@ export class InvokeCore {
       return this.starter;
     }
     const { functionName } = this.options;
-    const { baseDir } = this;
     const starter = new FaaSStarterClass({
-      baseDir,
+      baseDir: this.buildDir,
       functionName
     });
     await starter.start();
@@ -50,18 +52,9 @@ export class InvokeCore {
 
   // 获取用户代码中的函数方法
   async getUserFaasHandlerFunction() {
-    const { debugPort } = this.options;
     const handler = this.options.handler || this.getFunctionInfo().handler || '';
-    await this.buildTS();
     const starter = await this.getStarter();
-    const wrapFun = starter.handleInvokeWrapper(handler, !!debugPort);
-    return async (...args) => {
-      if (debugPort) {
-        const handler = await wrapFun(...args);
-        return faasDebug(handler);
-      }
-      return wrapFun(...args);
-    };
+    return starter.handleInvokeWrapper(handler);
   }
 
   getFunctionInfo(functionName?: string) {
@@ -76,25 +69,32 @@ export class InvokeCore {
 
   async buildTS() {
     const { baseDir } = this.options;
+    process.env.MIDWAY_TS_MODE = 'true';
     const tsconfig = resolve(baseDir, 'tsconfig.json');
     // 非ts
     if (!existsSync(tsconfig)) {
       return;
     }
+    const distTsconfig = resolve(this.buildDir, 'tsconfig.json');
+    if (!existsSync(distTsconfig)) { // midway-core 扫描判断isTsMode需要
+      writeFileSync(distTsconfig, '{}');
+    }
     let tsc = 'tsc';
+    const tscBuildDir = resolve(this.buildDir, 'src');
     try {
       tsc = resolve(require.resolve('typescript'), '../../bin/tsc');
     } catch (e) {
       return this.invokeError('need typescript');
     }
     try {
-      await execSync(`cd ${baseDir};${tsc} --skipLibCheck --skipDefaultLibCheck`);
+      await execSync(`cd ${baseDir};${tsc} --outDir ${tscBuildDir} --skipLibCheck --skipDefaultLibCheck`);
     } catch (e) {
       this.invokeError(e);
     }
   }
 
   async invoke(...args: any) {
+    await this.buildTS();
     const invoke = await this.getInvokeFunction();
     return invoke(...args);
   }
@@ -103,5 +103,82 @@ export class InvokeCore {
     console.error('[faas invoke error]');
     console.error(err);
     process.exit(1);
+  }
+
+  async loadHandler(WrapperContent: string) {
+    const { fileName, handlerName } = await this.makeWrapper(WrapperContent);
+    try {
+      const handler = require(fileName);
+      return handler[handlerName];
+    } catch (e) {
+      this.invokeError(e);
+    }
+  }
+
+  // 写入口
+  async makeWrapper(WrapperContent: string) {
+    const funcInfo = this.getFunctionInfo();
+    const [handlerFileName, name] = funcInfo.handler.split('.');
+    const funcLayers = funcInfo.layers || [];
+    const handlers = [];
+
+    // 高密度部署
+    if (funcInfo._isAggregation && funcInfo.functions) {
+      handlers.push({
+        name,
+        handlers: funcInfo._handlers,
+      });
+    } else {
+      handlers.push({
+        name,
+        handler: funcInfo.handler,
+      });
+    }
+
+    const fileName = join(this.buildDir, `${handlerFileName}.js`);
+    const layers = this.getLayers(
+      this.spec.layers,
+      ...funcLayers
+    );
+    const content = render(WrapperContent, {
+      handlers,
+      ...layers,
+    });
+    writeFileSync(fileName, content);
+    return { fileName, handlerName: name };
+  }
+
+  // 安装layer
+  private getLayers(...layersList: any) {
+    const layerTypeList = this.formatLayers(...layersList);
+    const layerDeps = [];
+    const layers = [];
+
+    if (layerTypeList && layerTypeList.npm) {
+      Object.keys(layerTypeList.npm).forEach((originName: string) => {
+        const name = 'layer_' + originName;
+        layerDeps.push({ name, path: layerTypeList.npm[originName] });
+        layers.push(name);
+      });
+    }
+    return {
+      layerDeps,
+      layers,
+    };
+  }
+
+  // 格式化layers
+  formatLayers(...multiLayers: any[]) {
+    const layerTypeList = { npm: {} };
+    multiLayers.forEach((layer: any) => {
+      Object.keys(layer || {}).forEach(layerName => {
+        const [type, path] = layer[layerName].path.split(':');
+        if (!layerTypeList[type]) {
+          return;
+        }
+        layerTypeList[type][layerName] = path;
+      });
+    });
+    return layerTypeList;
   }
 }

@@ -6,10 +6,6 @@ const { asyncWrapper, start } = require('@midwayjs/serverless-fc-starter');
 let starter;
 let runtime;
 let inited = false;
-let handlerFunction;
-<% if (globalHandlerFunction) { %>
-handlerFunction = globalHandlerFunction;
-<% } %>
 
 const initializeMethod = async (config = {}) => {
   runtime = await start({
@@ -30,13 +26,11 @@ exports.<%=handlerData.name%> = asyncWrapper(async (...args) => {
     await initializeMethod();
   }
   <% if (handlerData.handler) { %>
-  const handler = handlerFunction || starter.handleInvokeWrapper('<%=handlerData.handler%>');
-  return runtime.asyncEvent(handler)(...args);
+  return runtime.asyncEvent(starter.handleInvokeWrapper('<%=handlerData.handler%>'))(...args);
   <% } else { %>
   return runtime.asyncEvent(async (ctx) => {
     <% handlerData.handlers.forEach(function(multiHandler){ %> if (ctx && ctx.path === '<%=multiHandler.path%>') {
-      const handler = handlerFunction || starter.handleInvokeWrapper('<%=multiHandler.handler%>');
-      return handler(ctx);
+      return starter.handleInvokeWrapper('<%=multiHandler.handler%>')(ctx);
     } else <% }); %>{
       return 'unhandler path: ' + (ctx && ctx.path || '');
     }
