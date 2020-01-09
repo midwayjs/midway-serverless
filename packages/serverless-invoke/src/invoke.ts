@@ -12,15 +12,15 @@ export class Invoke extends InvokeCore {
     const provider = this.spec && this.spec.provider && this.spec.provider.name;
     if (provider) {
       let handler: any = ''; // todo
-      if (provider === 'fc') {
+      if (provider === 'fc' || provider === 'aliyun') {
         handler = await this.loadHandler(FCStarter.wrapperContent);
         triggerMap = FCTrigger;
-      } else if (provider === 'scf') {
+      } else if (provider === 'scf' || provider === 'tencent') {
         handler = await this.loadHandler(SCFStarter.wrapperContent);
       }
       if (handler) {
         runtime = createRuntime({
-          handler
+          handler: this.wrapperHandler(handler)
         });
       }
     }

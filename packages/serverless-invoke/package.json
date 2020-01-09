@@ -6,6 +6,7 @@
   "dependencies": {
     "@midwayjs/fcli-command-core": "^0.2.2",
     "@midwayjs/runtime-mock": "^0.2.0",
+    "@midwayjs/runtime-engine": "^0.2.0",
     "@midwayjs/serverless-fc-starter": "^0.2.0",
     "@midwayjs/serverless-fc-trigger": "^0.2.0",
     "@midwayjs/serverless-scf-starter": "^0.2.0",

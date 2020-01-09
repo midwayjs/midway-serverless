@@ -7,7 +7,7 @@
 */
 import { FaaSStarterClass } from './utils';
 import { execSync } from 'child_process';
-import { resolve, join } from 'path';
+import { resolve } from 'path';
 import { existsSync, writeFileSync, ensureDirSync } from 'fs-extra';
 import { loadSpec } from '@midwayjs/fcli-command-core';
 import { render } from 'ejs';
@@ -27,6 +27,7 @@ export class InvokeCore {
   starter: any;
   spec: any;
   buildDir: string;
+  wrapperInfo: any;
 
   constructor(options: InvokeOptions) {
     this.options = options;
@@ -87,7 +88,7 @@ export class InvokeCore {
       return this.invokeError('need typescript');
     }
     try {
-      await execSync(`cd ${baseDir};${tsc} --outDir ${tscBuildDir} --skipLibCheck --skipDefaultLibCheck`);
+      await execSync(`cd ${baseDir};${tsc} --inlineSourceMap --outDir ${tscBuildDir} --skipLibCheck --skipDefaultLibCheck`);
     } catch (e) {
       this.invokeError(e);
     }
@@ -96,17 +97,20 @@ export class InvokeCore {
   async invoke(...args: any) {
     await this.buildTS();
     const invoke = await this.getInvokeFunction();
+    this.checkDebug();
     return invoke(...args);
   }
 
   async invokeError(err) {
-    console.error('[faas invoke error]');
-    console.error(err);
+    console.log('[faas invoke error]');
+    console.log(err);
     process.exit(1);
   }
 
   async loadHandler(WrapperContent: string) {
-    const { fileName, handlerName } = await this.makeWrapper(WrapperContent);
+    const wrapperInfo = await this.makeWrapper(WrapperContent);
+    const { fileName, handlerName } = wrapperInfo;
+    this.wrapperInfo = wrapperInfo;
     try {
       const handler = require(fileName);
       return handler[handlerName];
@@ -135,7 +139,7 @@ export class InvokeCore {
       });
     }
 
-    const fileName = join(this.buildDir, `${handlerFileName}.js`);
+    const fileName = resolve(this.buildDir, `${handlerFileName}.js`);
     const layers = this.getLayers(
       this.spec.layers,
       ...funcLayers
@@ -180,5 +184,38 @@ export class InvokeCore {
       });
     });
     return layerTypeList;
+  }
+
+  wrapperHandler(handler) {
+    return handler;
+  }
+
+  checkDebug() {
+    if (!this.options.isDebug) {
+      return;
+    }
+    // tslint:disable-next-line: no-eval
+    eval(`
+      debugger;
+      /*
+
+      Debug 温馨提示
+
+      请点击左侧文件目录中的代码文件进行调试
+
+      ${this.wrapperInfo ? `
+      函数的入口文件所在:
+
+      ${this.wrapperInfo.fileName}  。
+
+      其中 exports.${this.wrapperInfo.handlerName} 方法为函数入口。
+
+      请断点至此函数
+      执行至此函数时，会自动生成源代码 sourceMap，方可继续调试。
+
+      感谢使用 midway-faas。
+
+      ` : ''}
+      */`);
   }
 }
