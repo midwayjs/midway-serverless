@@ -156,6 +156,13 @@ export class PackagePlugin extends BasePlugin {
         );
       })
     );
+    if (this.codeAnalyzeResult.integrationProject) {
+      await writeJSON(join(this.midwayBuildPath, 'package.json'), {
+        name: this.codeAnalyzeResult.projectType,
+        version: '1.0.0',
+        dependencies: this.codeAnalyzeResult.usingDependenciesVersion.valid,
+      });
+    }
     this.core.cli.log(` - File copy complete`);
   }
 
@@ -291,17 +298,14 @@ export class PackagePlugin extends BasePlugin {
             stripInternal: true,
             pretty: true,
             declaration: true,
-            outDir: relative(
-              this.servicePath,
-              this.codeAnalyzeResult.tsBuildRoot
-            ),
+            outDir: 'dist',
           },
-          include: [
-            `${relative(
-              this.servicePath,
-              this.codeAnalyzeResult.tsCodeRoot
-            )}/**/*`
-          ],
+          // include: [
+          //   `${relative(
+          //     this.servicePath,
+          //     this.codeAnalyzeResult.tsCodeRoot
+          //   )}/**/*`
+          // ],
           exclude: ['dist', 'node_modules', 'test'],
         });
         await builder.run({
@@ -309,9 +313,10 @@ export class PackagePlugin extends BasePlugin {
           argv: {
             clean: true,
             project: tsFaaSConfigFilename,
-            srcDir: source,
+            // srcDir: source,
           },
         });
+        await remove(tempConfigFilePath);
       } else {
         await builder.run({
           cwd: this.servicePath,

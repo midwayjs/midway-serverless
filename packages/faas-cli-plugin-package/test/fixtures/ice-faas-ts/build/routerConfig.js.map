@@ -1,1 +1,0 @@
-{"version":3,"file":"routerConfig.js","sourceRoot":"","sources":["../src/routerConfig.ts"],"names":[],"mappings":"AAAA,mBAAmB;AACnB,0BAA0B;AAC1B,4CAA4C;AAC5C,OAAO,SAAS,MAAM,mBAAmB,CAAC;AAE1C,MAAM,YAAY,GAAG;IACnB;QACE,IAAI,EAAE,YAAY;QAClB,SAAS,EAAE,SAAS;KACrB;CACF,CAAC;AAEF,eAAe,YAAY,CAAC"}

@@ -60,7 +60,7 @@ describe('package', () => {
         service: loadSpec(baseDir),
         provider: 'aliyun',
         options: {
-          buildDir: '.serverless/userbuild',
+          buildDir: 'build/cloud',
           sourceDir: 'src/apis',
         },
         log: console,
