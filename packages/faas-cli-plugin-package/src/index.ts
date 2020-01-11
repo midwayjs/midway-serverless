@@ -11,6 +11,7 @@ import {
   unlinkSync,
   writeFileSync,
   writeJSON,
+  move,
 } from 'fs-extra';
 import * as globby from 'globby';
 import { formatLayers } from './utils';
@@ -23,21 +24,23 @@ export class PackagePlugin extends BasePlugin {
   core: any;
   options: any;
   servicePath = this.core.config.servicePath;
+  // 代表构建产物的路径，非 ts 构建路径
   midwayBuildPath = join(this.servicePath, '.serverless');
   codeAnalyzeResult: AnalyzeResult;
+  integrationDistTempDirectory = 'integration_dist'; // 一体化构建的临时目录
 
   commands = {
     package: {
       usage: 'Packages a Serverless service',
       lifecycleEvents: [
         'cleanup', // 清理构建目录
-        'devDepInstall', // 安装开发期依赖
-        'tscompile', // 编译函数  'package:after:tscompile'
-        'spec', // 生成对应平台的描述文件，例如 serverless.yml 等
-        'wrapper', // 生成对应平台的入口文件
+        'installDevDep', // 安装开发期依赖
         'copyFile', // 拷贝文件: package.include
-        'layerInstall', // 安装layer
-        'depInstall', // 安装依赖
+        'tscompile', // 编译函数  'package:after:tscompile'
+        'generateSpec', // 生成对应平台的描述文件，例如 serverless.yml 等
+        'generateEntry', // 生成对应平台的入口文件
+        'installLayer', // 安装layer
+        'installDep', // 安装依赖
         'package', // 函数打包
         'finalize', // 完成
       ],
@@ -47,13 +50,13 @@ export class PackagePlugin extends BasePlugin {
           usage: 'NPM client name',
         },
         buildDir: {
-          usage: 'Build relative path, default is .serverless',
+          usage: 'Build relative path, default is process.cwd()',
         },
         sourceDir: {
           usage: 'Source relative path, default is src',
         },
         skipZip: {
-          usage: 'Skip zip package',
+          usage: 'Skip zip artifact',
           shortcut: 'z',
         },
         stage: {
@@ -70,71 +73,85 @@ export class PackagePlugin extends BasePlugin {
 
   hooks = {
     'package:cleanup': this.cleanup.bind(this),
-    'package:devDepInstall': this.devDepInstall.bind(this),
+    'package:installDevDep': this.installDevDep.bind(this),
     'package:copyFile': this.copyFile.bind(this),
-    'package:layerInstall': this.layerInstall.bind(this),
-    'package:depInstall': this.depInstall.bind(this),
+    'package:installLayer': this.installLayer.bind(this),
+    'package:installDep': this.installDep.bind(this),
     'package:package': this.package.bind(this),
     'package:tscompile': this.tsCompile.bind(this),
   };
 
   async cleanup() {
+    // 修改构建目标目录
+    if (this.options.buildDir) {
+      this.midwayBuildPath = join(
+        this.servicePath,
+        this.options.buildDir,
+        '.serverless'
+      );
+    }
+
     // 分析目录结构
     const locator = new Locator(this.servicePath);
     this.codeAnalyzeResult = await locator.run({
-      tsBuildRoot:
-        this.options.buildDir && join(this.servicePath, this.options.buildDir),
       tsCodeRoot:
         this.options.sourceDir &&
         join(this.servicePath, this.options.sourceDir),
     });
-    // 构建目标目录
-    this.midwayBuildPath = this.codeAnalyzeResult.tsBuildRoot;
-    await remove(this.midwayBuildPath);
-    await ensureDir(this.midwayBuildPath);
-    this.core.cli.log(` - Information`);
-    this.core.cli.log(`   ⊙ BaseDir: ${this.servicePath}`);
+    this.core.cli.log(`Information`);
+    this.core.cli.log(` - BaseDir: ${this.servicePath}`);
+    this.core.cli.log(` - AnalyzeResult`);
+    this.core.cli.log(
+      `   ◎ ProjectType: ${this.codeAnalyzeResult.projectType}`
+    );
     if (this.codeAnalyzeResult.midwayRoot) {
+      // 输出 midway-* 项目根路径
       this.core.cli.log(
-        `   ⊙ ProjectType: ${this.codeAnalyzeResult.projectType}`
-      );
-      this.core.cli.log(
-        `   ⊙ MidwayRoot: ${
+        `   ◎ MidwayRoot: ${
           this.servicePath === this.codeAnalyzeResult.midwayRoot
             ? '.'
             : relative(this.servicePath, this.codeAnalyzeResult.midwayRoot)
         }`
       );
+      // 输出 ts 代码根路径
+      this.core.cli.log(
+        `   ◎ TSCodeRoot: ${relative(
+          this.servicePath,
+          this.codeAnalyzeResult.tsCodeRoot
+        )}`
+      );
       if (this.codeAnalyzeResult.integrationProject) {
         this.core.cli.log(
-          `   ⊙ tsCodeRoot: ${relative(
-            this.servicePath,
-            this.codeAnalyzeResult.tsCodeRoot
-          )}`
+          `   ◎ TSBuildTemporaryRoot: ${this.integrationDistTempDirectory}`
         );
-        this.core.cli.log(
-          `   ⊙ tsBuildRoot: ${relative(
-            this.servicePath,
-            this.codeAnalyzeResult.tsBuildRoot
-          )}`
-        );
+        await remove(join(this.servicePath, this.integrationDistTempDirectory));
+      } else {
+        this.core.cli.log(`   ◎ TSBuildTemporaryRoot: dist`);
       }
+      // 输出构建产物根路径
+      this.core.cli.log(
+        `   ◎ PackageRoot: ${relative(this.servicePath, this.midwayBuildPath)}`
+      );
     }
+    await remove(this.midwayBuildPath);
+    await ensureDir(this.midwayBuildPath);
   }
 
-  async devDepInstall() {
-    this.core.cli.log(' - Install development dependencies...');
+  async installDevDep() {
+    this.core.cli.log('Install development dependencies...');
     if (!existsSync(join(this.servicePath, 'node_modules'))) {
       await this.npmInstall({
-        baseDir: this.servicePath
+        baseDir: this.servicePath,
       });
-      this.core.cli.log('  - Install development dependencies complete...');
+      this.core.cli.log(' - Install development dependencies complete...');
     } else {
-      this.core.cli.log('  - Find node_modules and skip...');
+      this.core.cli.log(' - Find node_modules and skip...');
     }
   }
 
   async copyFile() {
+    this.core.cli.log('Copy Files to build directory...');
+    // copy packages config files
     const packageObj: any = this.core.service.package || {};
     const include = await globby(
       [this.options.sourceDir || 'src', 'tsconfig.json', 'package.json'].concat(
@@ -166,11 +183,12 @@ export class PackagePlugin extends BasePlugin {
     this.core.cli.log(` - File copy complete`);
   }
 
-  async layerInstall() {
+  async installLayer() {
+    this.core.cli.log(`Install layers...`);
     const funcLayers = [];
     if (this.core.service.functions) {
       for (const func in this.core.service.functions) {
-        const funcConf = this.core.service.functions[ func ];
+        const funcConf = this.core.service.functions[func];
         if (funcConf.layers) {
           funcLayers.push(funcConf.layers);
         }
@@ -178,48 +196,20 @@ export class PackagePlugin extends BasePlugin {
     }
     const layerTypeList = formatLayers(this.core.service.layers, ...funcLayers);
     const npmList = Object.keys(layerTypeList.npm).map(
-      (name: string) => layerTypeList.npm[ name ]
+      (name: string) => layerTypeList.npm[name]
     );
     if (npmList && npmList.length) {
       await this.npmInstall({
-        npmList
+        npmList,
       });
     }
-    this.core.cli.log(` - layers install complete`);
+    this.core.cli.log(` - Layers install complete`);
   }
 
-  // 安装npm到构建文件夹
-  async npmInstall(options: {
-    npmList?: string[],
-    baseDir?: string;
-    production?: boolean;
-  } = {}) {
-    return new Promise((resolve, reject) => {
-      const installDirectory = options.baseDir || this.midwayBuildPath;
-      const pkgJson: string = join(installDirectory, 'package.json');
-      if (!existsSync(pkgJson)) {
-        writeFileSync(pkgJson, '{}');
-      }
-      exec(
-        `${this.options.npm || 'npm'} install ${
-          options.npmList ? `${options.npmList.join(' ')}` : (options.production ? '--production' : '')
-        }`, { cwd: installDirectory },
-        err => {
-          if (err) {
-            const errmsg = (err && err.message) || err;
-            this.core.cli.log(` - npm install err ${errmsg}`);
-            reject(errmsg);
-          } else {
-            resolve(true);
-          }
-        }
-      );
-    });
-  }
-
-  async depInstall() {
+  async installDep() {
+    this.core.cli.log('Install production dependencies...');
     if (this.options.ncc) {
-      this.core.cli.log(' - Dep install skip: using ncc');
+      this.core.cli.log(' - Production dependencies install skip: using ncc');
       return;
     }
     // globalDependencies
@@ -229,8 +219,7 @@ export class PackagePlugin extends BasePlugin {
     let pkgJson: any = {};
     try {
       pkgJson = JSON.parse(readFileSync(pkgJsonPath).toString());
-    } catch (e) {
-    }
+    } catch (e) {}
     const allDependencies = Object.assign(
       {},
       this.core.service.globalDependencies,
@@ -240,42 +229,42 @@ export class PackagePlugin extends BasePlugin {
     pkgJson.dependencies = {};
     const localDep = {};
     for (const depName in allDependencies) {
-      const depVersion = allDependencies[ depName ];
+      const depVersion = allDependencies[depName];
       if (/^(\.|\/)/.test(depVersion)) {
         // local dep
         const depPath = join(this.servicePath, depVersion);
         if (existsSync(depPath)) {
-          localDep[ depName ] = depPath;
+          localDep[depName] = depPath;
         } else {
-          this.core.cli.log(` - local dep ${depName}:${depVersion} not exists`);
+          this.core.cli.log(` - Local dep ${depName}:${depVersion} not exists`);
         }
       } else {
-        pkgJson.dependencies[ depName ] = depVersion;
+        pkgJson.dependencies[depName] = depVersion;
       }
     }
     writeFileSync(pkgJsonPath, JSON.stringify(pkgJson, null, '  '));
     await this.npmInstall({
-      production: true
+      production: true,
     });
     for (const localDepName in localDep) {
       const target = join(this.midwayBuildPath, 'node_modules', localDepName);
-      await copy(localDep[ localDepName ], target);
+      await copy(localDep[localDepName], target);
     }
-    this.core.cli.log(` - Dep install complete`);
+    this.core.cli.log(` - Dependencies install complete`);
   }
 
   async tsCompile() {
     const isTsDir = existsSync(join(this.servicePath, 'tsconfig.json'));
-    this.core.cli.log(' - Building Midway FaaS directory files...');
+    this.core.cli.log('Building Midway FaaS directory files...');
     if (!isTsDir) {
       this.core.cli.log(' - Not found tsconfig.json and skip build');
       return;
     }
     if (this.options.ncc) {
-      this.core.cli.log('   - Using single file build mode');
+      this.core.cli.log(' - Using single file build mode');
       // await buildByNcc();
     } else {
-      this.core.cli.log('   - Using tradition build mode');
+      this.core.cli.log(' - Using tradition build mode');
       const builder = new BuildCommand();
       const source = this.options.sourceDir || 'src';
       if (this.codeAnalyzeResult.integrationProject) {
@@ -298,14 +287,17 @@ export class PackagePlugin extends BasePlugin {
             stripInternal: true,
             pretty: true,
             declaration: true,
-            outDir: 'dist',
+            outDir: relative(
+              this.servicePath,
+              join(this.midwayBuildPath, 'dist')
+            ),
           },
-          // include: [
-          //   `${relative(
-          //     this.servicePath,
-          //     this.codeAnalyzeResult.tsCodeRoot
-          //   )}/**/*`
-          // ],
+          include: [
+            `${relative(
+              this.servicePath,
+              this.codeAnalyzeResult.tsCodeRoot
+            )}/**/*`,
+          ],
           exclude: ['dist', 'node_modules', 'test'],
         });
         await builder.run({
@@ -313,10 +305,17 @@ export class PackagePlugin extends BasePlugin {
           argv: {
             clean: true,
             project: tsFaaSConfigFilename,
-            // srcDir: source,
+            srcDir: source,
           },
         });
-        await remove(tempConfigFilePath);
+        // 把临时的 tsconfig 移动进去
+        await move(
+          tempConfigFilePath,
+          join(this.midwayBuildPath, 'tsconfig.json'),
+          {
+            overwrite: true,
+          }
+        );
       } else {
         await builder.run({
           cwd: this.servicePath,
@@ -326,16 +325,26 @@ export class PackagePlugin extends BasePlugin {
             srcDir: source,
           },
         });
+        // copy dist to artifact
+        await move(
+          this.codeAnalyzeResult.tsBuildRoot,
+          join(this.midwayBuildPath, 'dist'),
+          {
+            overwrite: true,
+          }
+        );
       }
 
       // await remove(join(this.midwayBuildPath, source));
     }
-    this.core.cli.log(`   - Build Midway FaaS complete`);
+    this.core.cli.log(` - Build Midway FaaS complete`);
   }
 
   async package() {
+    this.core.cli.log('Package artifact...');
     // 跳过打包
     if (this.options.skipZip) {
+      this.core.cli.log(' - Zip artifact skip');
       return;
     }
     // 构建打包
@@ -352,10 +361,10 @@ export class PackagePlugin extends BasePlugin {
     }
   }
 
-  makeZip(sourceDirection: string, targetFileName: string) {
+  private makeZip(sourceDirection: string, targetFileName: string) {
     return new Promise(resolve => {
       const output = createWriteStream(targetFileName);
-      output.on('close', function () {
+      output.on('close', function() {
         resolve(archive.pointer());
       });
       const archive = archiver('zip', {
@@ -364,6 +373,42 @@ export class PackagePlugin extends BasePlugin {
       archive.pipe(output);
       archive.directory(sourceDirection, false);
       archive.finalize();
+    });
+  }
+
+  // 安装npm到构建文件夹
+  private async npmInstall(
+    options: {
+      npmList?: string[];
+      baseDir?: string;
+      production?: boolean;
+    } = {}
+  ) {
+    return new Promise((resolve, reject) => {
+      const installDirectory = options.baseDir || this.midwayBuildPath;
+      const pkgJson: string = join(installDirectory, 'package.json');
+      if (!existsSync(pkgJson)) {
+        writeFileSync(pkgJson, '{}');
+      }
+      exec(
+        `${this.options.npm || 'npm'} install ${
+          options.npmList
+            ? `${options.npmList.join(' ')}`
+            : options.production
+            ? '--production'
+            : ''
+        }`,
+        { cwd: installDirectory },
+        err => {
+          if (err) {
+            const errmsg = (err && err.message) || err;
+            this.core.cli.log(` - npm install err ${errmsg}`);
+            reject(errmsg);
+          } else {
+            resolve(true);
+          }
+        }
+      );
     });
   }
 }

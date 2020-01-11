@@ -1,6 +1,6 @@
 {
-  "dependencies": {
-      "@midwayjs/runtime-engine": "*",
-      "@midwayjs/faas": "*"
-  }
+    "dependencies": {
+        "@midwayjs/runtime-engine": "*",
+        "@midwayjs/faas": "*"
+    }
 }

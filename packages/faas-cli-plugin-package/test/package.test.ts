@@ -1,12 +1,18 @@
 import { CommandHookCore, loadSpec } from '@midwayjs/fcli-command-core';
 import { PackagePlugin } from '../src/index';
-import { resolve } from 'path';
-import { existsSync } from 'fs';
+import { join, resolve } from 'path';
+import { existsSync, remove } from 'fs-extra';
 import * as assert from 'assert';
 
-describe('package', () => {
-  describe('base', () => {
+describe('/test/package.test.ts', () => {
+  describe('package base midway faas project', () => {
     const baseDir = resolve(__dirname, './fixtures/base-app');
+
+    beforeEach(async () => {
+      await remove(join(baseDir, 'serverless.zip'));
+      await remove(join(baseDir, 'package-lock.json'));
+      await remove(join(baseDir, '.serverless'));
+    });
     it('base package', async () => {
       const core = new CommandHookCore({
         config: {
@@ -35,7 +41,7 @@ describe('package', () => {
         service: loadSpec(baseDir),
         provider: 'aliyun',
         options: {
-          buildDir: '.serverless/userbuild',
+          buildDir: 'userbuild',
         },
         log: console,
       });
@@ -43,14 +49,14 @@ describe('package', () => {
       await core.ready();
       await core.invoke(['package']);
       assert(
-        existsSync(resolve(baseDir, '.serverless/userbuild/dist/index.js')) &&
+        existsSync(resolve(baseDir, 'userbuild/.serverless/dist/index.js')) &&
           existsSync(resolve(baseDir, 'serverless.zip'))
       );
     });
   });
 
   describe('integration project build', () => {
-    it.only('integration project build', async () => {
+    it('integration project build', async () => {
       const baseDir = resolve(__dirname, './fixtures/ice-faas-ts');
       const core = new CommandHookCore({
         config: {
@@ -60,7 +66,6 @@ describe('package', () => {
         service: loadSpec(baseDir),
         provider: 'aliyun',
         options: {
-          buildDir: 'build/cloud',
           sourceDir: 'src/apis',
         },
         log: console,
@@ -69,7 +74,7 @@ describe('package', () => {
       await core.ready();
       await core.invoke(['package']);
       assert(
-        existsSync(resolve(baseDir, '.serverless/userbuild/dist/index.js')) &&
+        existsSync(resolve(baseDir, '.serverless/dist/index.js')) &&
           existsSync(resolve(baseDir, 'serverless.zip'))
       );
     });
