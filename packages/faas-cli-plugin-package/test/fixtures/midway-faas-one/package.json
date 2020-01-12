@@ -9,6 +9,5 @@
     "clean": "rm -rf node_modules client/node_modules cloud/node_modules",
     "publish-def": "npm run build"
   },
-  "author": "mingsheng.tms@alibaba-inc.com",
   "license": "ISC"
 }

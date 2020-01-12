@@ -6,10 +6,6 @@
     "build": "ice-scripts build --config ./ice.config.js",
     "lint": "eslint --fix --quiet --ext .jsx --ext .js ./src"
   },
-  "repository": {
-    "type": "git",
-    "url": "git@gitlab.alibaba-inc.com"
-  },
   "dependencies": {
     "@alifd/next": "^1.x",
     "@alifd/theme-element": "^0.3.0",
