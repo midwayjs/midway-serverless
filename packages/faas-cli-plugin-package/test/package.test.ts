@@ -8,10 +8,11 @@ describe('/test/package.test.ts', () => {
   describe('package base midway faas project', () => {
     const baseDir = resolve(__dirname, './fixtures/base-app');
 
-    beforeEach(async () => {
+    afterEach(async () => {
       await remove(join(baseDir, 'serverless.zip'));
       await remove(join(baseDir, 'package-lock.json'));
       await remove(join(baseDir, '.serverless'));
+      await remove(join(baseDir, 'node_modules'));
     });
     it('base package', async () => {
       const core = new CommandHookCore({
@@ -27,10 +28,13 @@ describe('/test/package.test.ts', () => {
       core.addPlugin(PackagePlugin);
       await core.ready();
       await core.invoke(['package']);
-      assert(
-        existsSync(resolve(baseDir, '.serverless/dist/index.js')) &&
-          existsSync(resolve(baseDir, 'serverless.zip'))
-      );
+      const buildPath = join(baseDir, '.serverless');
+      assert(existsSync(join(buildPath, 'dist/index.js')));
+      assert(existsSync(join(buildPath, 'node_modules')));
+      assert(existsSync(join(buildPath, 'src')));
+      assert(existsSync(join(buildPath, 'package.json')));
+      assert(existsSync(join(buildPath, 'tsconfig.json')));
+      assert(existsSync(resolve(baseDir, 'serverless.zip')));
     });
     it('build target package', async () => {
       const core = new CommandHookCore({
@@ -42,17 +46,52 @@ describe('/test/package.test.ts', () => {
         provider: 'aliyun',
         options: {
           buildDir: 'userbuild',
+          skipZip: true,
         },
         log: console,
       });
       core.addPlugin(PackagePlugin);
       await core.ready();
       await core.invoke(['package']);
-      assert(
-        existsSync(resolve(baseDir, 'userbuild/.serverless/dist/index.js')) &&
-          existsSync(resolve(baseDir, 'serverless.zip'))
-      );
+
+      const buildPath = join(baseDir, 'userbuild/.serverless');
+      assert(existsSync(join(buildPath, 'dist/index.js')));
+      assert(existsSync(join(buildPath, 'node_modules')));
+      assert(existsSync(join(buildPath, 'src')));
+      assert(existsSync(join(buildPath, 'package.json')));
+      assert(existsSync(join(buildPath, 'tsconfig.json')));
+      assert(!existsSync(resolve(baseDir, 'serverless.zip')));
+      await remove(join(baseDir, 'userbuild'));
     });
+  });
+
+  it('use custom artifact directory', async () => {
+    const baseDir = join(__dirname, './fixtures/base-app-pkg-config');
+    const core = new CommandHookCore({
+      config: {
+        servicePath: baseDir,
+      },
+      commands: ['package'],
+      service: loadSpec(baseDir),
+      provider: 'aliyun',
+      log: console,
+    });
+    core.addPlugin(PackagePlugin);
+    await core.ready();
+    await core.invoke(['package']);
+
+    const buildPath = join(baseDir, '.serverless');
+    assert(existsSync(join(buildPath, 'dist/index.js')));
+    assert(existsSync(join(buildPath, 'node_modules')));
+    assert(existsSync(join(buildPath, 'src')));
+    assert(existsSync(join(buildPath, 'package.json')));
+    assert(existsSync(join(buildPath, 'tsconfig.json')));
+    assert(existsSync(join(buildPath, 'a.json')));
+    assert(!existsSync(join(buildPath, 'b.json')));
+    assert(existsSync(join(baseDir, 'path/to/my-artifact.zip')));
+
+    // clean
+    await remove(join(baseDir, 'path'));
   });
 
   describe('integration project build', () => {
@@ -73,10 +112,8 @@ describe('/test/package.test.ts', () => {
       core.addPlugin(PackagePlugin);
       await core.ready();
       await core.invoke(['package']);
-      assert(
-        existsSync(resolve(baseDir, '.serverless/dist/index.js')) &&
-          existsSync(resolve(baseDir, 'serverless.zip'))
-      );
+      assert(existsSync(resolve(baseDir, '.serverless/dist/index.js')));
+      assert(existsSync(resolve(baseDir, 'serverless.zip')));
     });
   });
 });

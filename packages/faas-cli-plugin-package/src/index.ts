@@ -1,5 +1,5 @@
 import { BasePlugin } from '@midwayjs/fcli-command-core';
-import { join, relative, resolve } from 'path';
+import { join, relative, resolve, isAbsolute } from 'path';
 import {
   copy,
   createWriteStream,
@@ -8,10 +8,10 @@ import {
   readFileSync,
   remove,
   statSync,
-  unlinkSync,
   writeFileSync,
   writeJSON,
   move,
+  ensureFile,
 } from 'fs-extra';
 import * as globby from 'globby';
 import { formatLayers } from './utils';
@@ -120,6 +120,10 @@ export class PackagePlugin extends BasePlugin {
           this.codeAnalyzeResult.tsCodeRoot
         )}`
       );
+      this.options.sourceDir = relative(
+        this.servicePath,
+        this.codeAnalyzeResult.tsCodeRoot
+      );
       if (this.codeAnalyzeResult.integrationProject) {
         this.core.cli.log(
           `   ◎ TSBuildTemporaryRoot: ${this.integrationDistTempDirectory}`
@@ -165,8 +169,12 @@ export class PackagePlugin extends BasePlugin {
     const paths = include.filter((filePath: string) => {
       return exclude.indexOf(filePath) === -1;
     });
+    if (paths.length) {
+      this.core.cli.log(` - Copy files`);
+    }
     await Promise.all(
       paths.map((path: string) => {
+        this.core.cli.log(`   ◎ Copy ${path}`);
         return copy(
           join(this.servicePath, path),
           join(this.midwayBuildPath, path)
@@ -325,7 +333,7 @@ export class PackagePlugin extends BasePlugin {
             srcDir: source,
           },
         });
-        // copy dist to artifact
+        // copy dist to artifact directory
         await move(
           this.codeAnalyzeResult.tsBuildRoot,
           join(this.midwayBuildPath, 'dist'),
@@ -348,7 +356,24 @@ export class PackagePlugin extends BasePlugin {
       return;
     }
     // 构建打包
-    const file = join(this.servicePath, 'serverless.zip');
+    const packageObj: any = this.core.service.package || {};
+
+    let file = join(this.servicePath, 'serverless.zip');
+
+    if (packageObj.artifact) {
+      if (isAbsolute(packageObj.artifact)) {
+        file = packageObj.artifact;
+      } else {
+        file = join(this.servicePath, packageObj.artifact);
+      }
+    }
+
+    this.core.cli.log(` - Artifact file ${relative(this.servicePath, file)}`);
+
+    // 保证文件存在，然后删了文件，只留目录
+    await ensureFile(file);
+    await remove(file);
+
     await this.makeZip(this.midwayBuildPath, file);
     const stat = statSync(file);
     this.core.cli.log(
@@ -356,8 +381,7 @@ export class PackagePlugin extends BasePlugin {
     );
     if (this.options.package) {
       const to = resolve(this.servicePath, this.options.package);
-      await copy(file, to);
-      await unlinkSync(file);
+      await move(file, to);
     }
   }
 
