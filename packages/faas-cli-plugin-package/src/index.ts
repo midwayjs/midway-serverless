@@ -82,6 +82,7 @@ export class PackagePlugin extends BasePlugin {
   };
 
   async cleanup() {
+    process.chdir(this.servicePath);
     // 修改构建目标目录
     if (this.options.buildDir) {
       this.midwayBuildPath = join(
@@ -342,8 +343,6 @@ export class PackagePlugin extends BasePlugin {
           }
         );
       }
-
-      // await remove(join(this.midwayBuildPath, source));
     }
     this.core.cli.log(` - Build Midway FaaS complete`);
   }
