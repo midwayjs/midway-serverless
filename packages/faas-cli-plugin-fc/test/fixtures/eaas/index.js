@@ -1,18 +1,12 @@
-'use strict';
-
-const { asyncWrapper } = require('@midwayjs/runtime-engine');
-const { start } = require('@midwayjs/serverless-fc-starter');
-const eggLayer = require('@midwayjs/egg-layer');
+const { asyncWrapper, start } = require('@midwayjs/serverless-fc-starter');
 
 let runtime;
-let inited;
+let inited = false;
 
 const initializeMethod = async (config = {}) => {
   runtime = await start({
-    layers: [eggLayer],
+    layers: [],
   });
-  starter = new FaaSStarter({ config, baseDir: __dirname });
-  await starter.start();
   inited = true;
 };
 
@@ -24,5 +18,6 @@ exports.handler = asyncWrapper(async (...args) => {
   if (!inited) {
     await initializeMethod();
   }
+
   return runtime.asyncEvent()(...args);
 });
