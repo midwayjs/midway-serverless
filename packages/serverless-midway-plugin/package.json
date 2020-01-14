@@ -1,6 +1,6 @@
 {
   "name": "serverless-midway-plugin",
-  "version": "0.2.2",
+  "version": "0.2.4",
   "description": "serverless plugin for midway faas",
   "main": "dist/index",
   "typings": "dist/index.d.ts",
@@ -28,7 +28,7 @@
   "dependencies": {
     "@alicloud/fun": "^3.1.3",
     "@midwayjs/faas": "^0.2.0",
-    "@midwayjs/fcli-plugin-invoke": "^0.2.2",
+    "@midwayjs/fcli-plugin-invoke": "^0.2.4",
     "@midwayjs/fcli-plugin-test": "^0.2.2",
     "@midwayjs/serverless-spec-builder": "^0.2.2",
     "archiver": "^3.1.1",
@@ -42,5 +42,8 @@
     "serverless-tencent-scf": "^0.1.21",
     "tar": "^5.0.5"
   },
-  "gitHead": "b67e2753cbdcc91813067ba2a1bb1ce7e85a3dff"
+  "gitHead": "b67e2753cbdcc91813067ba2a1bb1ce7e85a3dff",
+  "devDependencies": {
+    "@midwayjs/serverless-fc-starter": "^0.2.4"
+  }
 }
