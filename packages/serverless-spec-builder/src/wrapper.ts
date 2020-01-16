@@ -3,7 +3,7 @@ import { writeFileSync, existsSync } from 'fs';
 import { render } from 'ejs';
 import { getLayers } from './utils';
 export const wrapperContent = `const { FaaSStarter } = require('@midwayjs/faas');
-const { asyncWrapper, start } = require('<% starter %>>');
+const { asyncWrapper, start } = require('<%=starter %>');
 <% layerDeps.forEach(function(layer){ %>const <%=layer.name%> = require('<%=layer.path%>');
 <% }); %>
 
@@ -46,10 +46,11 @@ exports.<%=handlerData.name%> = asyncWrapper(async (...args) => {
 // 写入口
 export function writeWrapper(options: {
   service: any;
+  baseDir: string;
   distDir: string;
   starter: string;
 }) {
-  const { service, distDir, starter } = options;
+  const { service, distDir, starter, baseDir } = options;
   const files = {};
   const functions = service.functions || {};
   for (const func in functions) {
@@ -58,7 +59,7 @@ export function writeWrapper(options: {
       continue;
     }
     const [handlerFileName, name] = handlerConf.handler.split('.');
-    if (existsSync(join(distDir, handlerFileName + '.js'))) {
+    if (existsSync(join(baseDir, handlerFileName + '.js'))) {
       // 如果入口文件名存在，则跳过
       continue;
     }

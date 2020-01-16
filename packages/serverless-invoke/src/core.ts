@@ -95,14 +95,10 @@ export class InvokeCore {
   }
 
   async invoke(...args: any) {
-    try {
-      await this.buildTS();
-      const invoke = await this.getInvokeFunction();
-      this.checkDebug();
-      return invoke(...args);
-    } catch (e) {
-      console.log('xxx', e.message);
-    }
+    await this.buildTS();
+    const invoke = await this.getInvokeFunction();
+    this.checkDebug();
+    return invoke(...args);
   }
 
   async invokeError(err) {
@@ -130,6 +126,7 @@ export class InvokeCore {
     const fileName = resolve(this.buildDir, `${handlerFileName}.js`);
 
     writeWrapper({
+      baseDir: this.baseDir,
       service: {
         layers: this.spec.layers,
         functions: {[this.options.functionName]: funcInfo}

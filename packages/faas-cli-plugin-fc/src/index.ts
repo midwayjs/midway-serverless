@@ -25,6 +25,7 @@ export class AliyunFCPlugin extends BasePlugin {
       this.core.cli.log('Generate entry file...');
       this.setGlobalDependencies('@midwayjs/serverless-fc-starter');
       writeWrapper({
+        baseDir: this.servicePath,
         service: this.core.service,
         distDir: this.midwayBuildPath,
         starter: '@midwayjs/serverless-fc-starter'
