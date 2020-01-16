@@ -95,10 +95,14 @@ export class InvokeCore {
   }
 
   async invoke(...args: any) {
-    await this.buildTS();
-    const invoke = await this.getInvokeFunction();
-    this.checkDebug();
-    return invoke(...args);
+    try {
+      await this.buildTS();
+      const invoke = await this.getInvokeFunction();
+      this.checkDebug();
+      return invoke(...args);
+    } catch (e) {
+      console.log('xxx', e.message);
+    }
   }
 
   async invokeError(err) {
