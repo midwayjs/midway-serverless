@@ -25,6 +25,20 @@ export class CreatePlugin extends BasePlugin {
   servicePath = this.core.config.servicePath;
   showPrompt = true;
   npmClient = 'npm';
+  _innerPrompt;
+
+  set prompt(value) {
+    const originRun = value.run;
+    value.run = async () => {
+      await this.beforePromptSubmit();
+      return originRun.call(value);
+    };
+    this._innerPrompt = value;
+  }
+
+  get prompt() {
+    return this._innerPrompt;
+  }
 
   commands = {
     create: {
@@ -48,13 +62,15 @@ export class CreatePlugin extends BasePlugin {
     'create:create': this.create.bind(this),
   };
 
+  async beforePromptSubmit() {}
+
   async create() {
     this.core.cli.log('Generating boilerplate...');
 
     if (this.options['template']) {
       await this.createFromTemplate();
     } else {
-      const answer = new Select({
+      this.prompt = new Select({
         name: 'templateName',
         message: 'Hello, traveller.\n  Which template do you like?',
         choices: Object.keys(templateList).map(template => {
@@ -66,7 +82,7 @@ export class CreatePlugin extends BasePlugin {
         show: this.showPrompt,
       });
 
-      this.options.template = await answer.run();
+      this.options.template = await this.prompt.run();
       await this.createFromTemplate();
     }
     // done
@@ -75,12 +91,12 @@ export class CreatePlugin extends BasePlugin {
 
   async createFromTemplate() {
     if (!this.options.path) {
-      const input = new Input({
+      this.prompt = new Input({
         message: `The directory where the service should be created`,
         initial: 'my_new_serverless',
         show: this.showPrompt,
       });
-      const targetPath = await input.run();
+      const targetPath = await this.prompt.run();
       this.options.path = targetPath;
     }
 
@@ -96,7 +112,7 @@ export class CreatePlugin extends BasePlugin {
     const args = await generator.getParameterList();
     const argsKeys = Object.keys(args);
     if (argsKeys && argsKeys.length) {
-      const form = new Form({
+      this.prompt = new Form({
         name: 'user',
         message: 'Please provide the following information:',
         choices: argsKeys.map(argsKey => {
@@ -108,7 +124,7 @@ export class CreatePlugin extends BasePlugin {
         }),
         show: this.showPrompt,
       });
-      const parameters = await form.run();
+      const parameters = await this.prompt.run();
       await this.readyGenerate();
       await generator.run(parameters);
     } else {

@@ -1,7 +1,8 @@
 import { CommandHookCore, loadSpec } from '@midwayjs/fcli-command-core';
-import { CreatePlugin } from '../src/index';
 import { join } from 'path';
-import { remove, existsSync } from 'fs-extra';
+import { remove, existsSync, readFileSync } from 'fs-extra';
+import { TestCreatePlugin } from './helper';
+import * as assert from 'assert';
 
 describe('/test/create.test.ts', () => {
   const baseDir = join(__dirname, './tmp');
@@ -18,12 +19,25 @@ describe('/test/create.test.ts', () => {
       commands: ['create'],
       service: loadSpec(baseDir),
       provider: 'aliyun',
-      options: {},
+      options: {
+        template: 'faas-standard',
+        path: 'my_serverless',
+      },
       log: console,
     });
-    core.addPlugin(CreatePlugin);
+    core.addPlugin(TestCreatePlugin);
     await core.ready();
     await core.invoke(['create']);
+    assert(existsSync(join(baseDir, 'my_serverless/f.yml')));
+    assert(existsSync(join(baseDir, 'my_serverless/src')));
+    assert(existsSync(join(baseDir, 'my_serverless/test')));
+    assert(existsSync(join(baseDir, 'my_serverless/tsconfig.json')));
+    assert(existsSync(join(baseDir, 'my_serverless/package.json')));
+    const contents = readFileSync(
+      join(baseDir, 'my_serverless/f.yml'),
+      'utf-8'
+    );
+    assert(/serverless-hello-world/.test(contents));
     await remove(baseDir);
   });
 });
