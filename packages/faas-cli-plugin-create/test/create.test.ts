@@ -1,12 +1,14 @@
 import { CommandHookCore, loadSpec } from '@midwayjs/fcli-command-core';
 import { CreatePlugin } from '../src/index';
 import { join } from 'path';
-import { remove } from 'fs-extra';
+import { remove, existsSync } from 'fs-extra';
 
 describe('/test/create.test.ts', () => {
   const baseDir = join(__dirname, './tmp');
   beforeEach(async () => {
-    await remove(baseDir);
+    if (existsSync(baseDir)) {
+      await remove(baseDir);
+    }
   });
   it('base create faas boilerplate', async () => {
     const core = new CommandHookCore({
@@ -22,6 +24,6 @@ describe('/test/create.test.ts', () => {
     core.addPlugin(CreatePlugin);
     await core.ready();
     await core.invoke(['create']);
-    // await remove(baseDir);
+    await remove(baseDir);
   });
 });

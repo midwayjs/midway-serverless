@@ -69,6 +69,8 @@ export class CreatePlugin extends BasePlugin {
       this.options.template = await answer.run();
       await this.createFromTemplate();
     }
+    // done
+    this.printUsage();
   }
 
   async createFromTemplate() {
@@ -130,5 +132,15 @@ export class CreatePlugin extends BasePlugin {
     await sleep(1000);
     this.core.cli.log('Enjoy it...');
     this.core.cli.log();
+  }
+
+  printUsage() {
+    this.core.cli.log(`Usage:
+    - cd ${this.options.path}
+    - ${this.npmClient} install
+    - ${this.npmClient} run test
+    - and read README.md
+    `);
+    this.core.cli.log('Document: https://midwayjs.org/faas');
   }
 }
