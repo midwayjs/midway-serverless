@@ -20,6 +20,28 @@ export class CreatePlugin extends BasePlugin {
   _innerPrompt;
   templateList;
 
+  constructor(core, options) {
+    super(core, options);
+    this.loadTemplateList();
+    this.commands = {
+      create: {
+        usage: 'Create new Ali FaaS service',
+        lifecycleEvents: ['create'],
+        options: {
+          template: {
+            usage: `Template for the service. Available templates: ${this.humanReadableTemplateList()}`,
+            shortcut: 't',
+          },
+          path: {
+            usage:
+              'The path where the service should be created (e.g. --path my-service)',
+            shortcut: 'p',
+          },
+        },
+      },
+    };
+  }
+
   set prompt(value) {
     const originRun = value.run;
     value.run = async () => {
@@ -33,24 +55,6 @@ export class CreatePlugin extends BasePlugin {
     return this._innerPrompt;
   }
 
-  commands = {
-    create: {
-      usage: 'Create new Ali FaaS service',
-      lifecycleEvents: ['create'],
-      options: {
-        template: {
-          usage: `Template for the service. Available templates: ${this.humanReadableTemplateList()}`,
-          shortcut: 't',
-        },
-        path: {
-          usage:
-            'The path where the service should be created (e.g. --path my-service)',
-          shortcut: 'p',
-        },
-      },
-    },
-  };
-
   hooks = {
     'create:create': this.create.bind(this),
   };
@@ -59,7 +63,6 @@ export class CreatePlugin extends BasePlugin {
 
   async create() {
     this.core.cli.log('Generating boilerplate...');
-    this.loadTemplateList();
     if (this.options['template']) {
       await this.createFromTemplate();
     } else {
