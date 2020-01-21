@@ -1,5 +1,6 @@
 import { BasePlugin } from '@midwayjs/fcli-command-core';
 import { join } from 'path';
+import { templateList } from './list';
 const { LightGenerator } = require('light-generator');
 const { Select, Input, Form } = require('enquirer');
 
@@ -157,7 +158,7 @@ export class CreatePlugin extends BasePlugin {
   }
 
   loadTemplateList() {
-    this.templateList = require('./list');
+    this.templateList = templateList;
   }
 
   humanReadableTemplateList() {
