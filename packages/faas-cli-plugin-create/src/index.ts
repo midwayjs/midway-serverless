@@ -1,6 +1,5 @@
 import { BasePlugin } from '@midwayjs/fcli-command-core';
 import { join } from 'path';
-const templateList = require('./list');
 const { LightGenerator } = require('light-generator');
 const { Select, Input, Form } = require('enquirer');
 
@@ -12,13 +11,6 @@ async function sleep(timeout) {
   });
 }
 
-// class wide constants
-const validTemplates = Object.keys(templateList);
-const humanReadableTemplateList = `${validTemplates
-  .slice(0, -1)
-  .map(template => `"${template}"`)
-  .join(', ')} and "${validTemplates.slice(-1)}"`;
-
 export class CreatePlugin extends BasePlugin {
   core: any;
   options: any;
@@ -26,6 +18,7 @@ export class CreatePlugin extends BasePlugin {
   showPrompt = true;
   npmClient = 'npm';
   _innerPrompt;
+  templateList;
 
   set prompt(value) {
     const originRun = value.run;
@@ -46,7 +39,7 @@ export class CreatePlugin extends BasePlugin {
       lifecycleEvents: ['create'],
       options: {
         template: {
-          usage: `Template for the service. Available templates: ${humanReadableTemplateList}`,
+          usage: `Template for the service. Available templates: ${this.humanReadableTemplateList()}`,
           shortcut: 't',
         },
         path: {
@@ -66,15 +59,15 @@ export class CreatePlugin extends BasePlugin {
 
   async create() {
     this.core.cli.log('Generating boilerplate...');
-
+    this.loadTemplateList();
     if (this.options['template']) {
       await this.createFromTemplate();
     } else {
       this.prompt = new Select({
         name: 'templateName',
         message: 'Hello, traveller.\n  Which template do you like?',
-        choices: Object.keys(templateList).map(template => {
-          return `${template} - ${templateList[template].desc}`;
+        choices: Object.keys(this.templateList).map(template => {
+          return `${template} - ${this.templateList[template].desc}`;
         }),
         result: value => {
           return value.split(' - ')[0];
@@ -105,7 +98,7 @@ export class CreatePlugin extends BasePlugin {
     const lightGenerator = new LightGenerator();
     const generator = lightGenerator.defineNpmPackage({
       npmClient: this.npmClient,
-      npmPackage: templateList[this.options.template].package,
+      npmPackage: this.templateList[this.options.template].package,
       targetPath: newPath,
     });
 
@@ -159,4 +152,18 @@ export class CreatePlugin extends BasePlugin {
     `);
     this.core.cli.log('Document: https://midwayjs.org/faas');
   }
+
+  loadTemplateList() {
+    this.templateList = require('./list');
+  }
+
+  humanReadableTemplateList() {
+    // class wide constants
+    const validTemplates = Object.keys(this.templateList);
+    return `${validTemplates
+    .slice(0, -1)
+    .map(template => `"${template}"`)
+    .join(', ')} and "${validTemplates.slice(-1)}"`;
+  }
+
 }
