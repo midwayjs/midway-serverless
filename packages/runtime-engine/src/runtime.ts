@@ -6,6 +6,7 @@ import {
   LoggerFactory,
   PropertyParser,
   Runtime,
+  FunctionEvent,
 } from './interface';
 import { join } from 'path';
 import { EnvPropertyParser } from './lib/parser';
@@ -19,7 +20,7 @@ export class ServerlessBaseRuntime extends EventEmitter implements Runtime {
   debugLogger = new DebugLogger('base_runtime');
   loggerFactory: LoggerFactory;
   contextExtensions: ContextExtensionHandler[];
-  eventHandlers: Array<(payload: any) => Promise<any>> = [];
+  eventHandlers: FunctionEvent[] = [];
   handlerStore = new Map();
   logger = null;
 
@@ -38,31 +39,11 @@ export class ServerlessBaseRuntime extends EventEmitter implements Runtime {
     const self = this;
     await this.handlerInvokerWrapper('beforeRuntimeStartHandler', [this]);
 
-    // create trigger
     for (const eventExtension of eventExtensions) {
       const funEvent = await eventExtension(self);
+      funEvent.setRuntime(this);
       if (funEvent) {
-        const handler = await funEvent.create(this, (eventType, meta) => {
-          return (...args) => {
-            return new Promise((resolve, reject) => {
-              const timer = setTimeout(() => {
-                reject(
-                  new Error(`function invoke timeout: ${JSON.stringify(args)}`)
-                );
-              }, Number(this.propertyParser.getFuncTimeout()));
-              this.eventHandler(funEvent, eventType, args, meta)
-                .then(res => {
-                  clearTimeout(timer);
-                  resolve(res);
-                })
-                .catch(err => {
-                  clearTimeout(timer);
-                  reject(err);
-                });
-            });
-          };
-        });
-        this.eventHandlers.push(handler);
+        this.eventHandlers.push(funEvent);
       }
     }
 
@@ -90,18 +71,18 @@ export class ServerlessBaseRuntime extends EventEmitter implements Runtime {
     );
   }
 
-  async eventHandler(funEvent, eventType, args, meta) {
+  async emitHandler(funEvent: FunctionEvent, args) {
     let newArgs = args;
     if (funEvent.transformInvokeArgs) {
       newArgs = funEvent.transformInvokeArgs(...args) || [];
     }
 
-    const context = await this.getContext(eventType, newArgs);
+    const context = await this.getContext(funEvent.type, newArgs);
     try {
       await this.handlerInvokerWrapper('beforeInvokeHandler', [
         context,
         args,
-        meta,
+        funEvent.meta,
       ]);
       const result = await this.invokeDataHandler(context, ...newArgs);
       await this.handlerInvokerWrapper('afterInvokeHandler', [
@@ -209,6 +190,35 @@ export class ServerlessBaseRuntime extends EventEmitter implements Runtime {
     }
 
     return Promise.reject(error);
+  }
+
+  async triggerRoute(payload): Promise<FunctionEvent> {
+    for (const event of this.eventHandlers) {
+      if (event.validate(payload)) {
+        return event;
+      }
+    }
+    throw new Error('trigger not found');
+  }
+
+  async invoke(payload: any) {
+    const funEvent = await this.triggerRoute(payload);
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        reject(
+          new Error(`function invoke timeout: ${JSON.stringify(payload)}`)
+        );
+      }, Number(this.propertyParser.getFuncTimeout()));
+      this.emitHandler(funEvent, payload)
+        .then(res => {
+          clearTimeout(timer);
+          resolve(res);
+        })
+        .catch(err => {
+          clearTimeout(timer);
+          reject(err);
+        });
+    });
   }
 
   async defaultInvokeHandler(...args) {
