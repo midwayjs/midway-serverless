@@ -1,15 +1,17 @@
-import { FunctionEvent, Runtime } from '../../../src';
+import { FunctionEvent } from '../../../src';
 
-export class HttpEvent extends FunctionEvent {
+export class HttpEvent implements FunctionEvent {
+  type: string;
+  meta: object;
   logger;
-  handler;
 
   constructor(options) {
-    super('HTTP', { domainName: 'http.test.com' });
+    this.type = 'HTTP';
+    this.meta = { domainName: 'http.test.com' };
     this.logger = options.logger;
   }
 
-  validate() {
+  match() {
     return true;
   }
 

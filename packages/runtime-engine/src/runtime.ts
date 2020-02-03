@@ -41,7 +41,6 @@ export class ServerlessBaseRuntime extends EventEmitter implements Runtime {
 
     for (const eventExtension of eventExtensions) {
       const funEvent = await eventExtension(self);
-      funEvent.setRuntime(this);
       if (funEvent) {
         this.eventHandlers.push(funEvent);
       }
@@ -59,7 +58,7 @@ export class ServerlessBaseRuntime extends EventEmitter implements Runtime {
     await this.handlerInvokerWrapper('afterFunctionStartHandler', [this]);
   }
 
-  async getContext(eventType, newArgs) {
+  async getContext(event: FunctionEvent, newArgs) {
     return this.contextExtensions.reduce(
       (promiseCtx, contextExtension) =>
         promiseCtx.then(ctx => {
@@ -67,17 +66,17 @@ export class ServerlessBaseRuntime extends EventEmitter implements Runtime {
             (realCtx: any) => realCtx || ctx
           );
         }),
-      Promise.resolve(this.createFunctionContext(eventType, newArgs))
+      Promise.resolve(this.createFunctionContext(event, newArgs))
     );
   }
 
   async emitHandler(funEvent: FunctionEvent, args) {
     let newArgs = args;
     if (funEvent.transformInvokeArgs) {
-      newArgs = funEvent.transformInvokeArgs(...args) || [];
+      newArgs = funEvent.transformInvokeArgs.apply(funEvent, args) || [];
     }
 
-    const context = await this.getContext(funEvent.type, newArgs);
+    const context = await this.getContext(funEvent, newArgs);
     try {
       await this.handlerInvokerWrapper('beforeInvokeHandler', [
         context,
@@ -194,14 +193,14 @@ export class ServerlessBaseRuntime extends EventEmitter implements Runtime {
 
   async triggerRoute(payload): Promise<FunctionEvent> {
     for (const event of this.eventHandlers) {
-      if (event.validate(payload)) {
+      if (event.match(payload)) {
         return event;
       }
     }
     throw new Error('trigger not found');
   }
 
-  async invoke(payload: any) {
+  async invoke(payload: any): Promise<any> {
     const funEvent = await this.triggerRoute(payload);
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => {
@@ -225,7 +224,10 @@ export class ServerlessBaseRuntime extends EventEmitter implements Runtime {
     throw new Error('invoke handler not found');
   }
 
-  createFunctionContext(type, ...args): any {
+  createFunctionContext(event: FunctionEvent, ...args): any {
+    if (event.getContext) {
+      return event.getContext(args);
+    }
     return {};
   }
 
