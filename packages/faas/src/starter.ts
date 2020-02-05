@@ -1,10 +1,17 @@
 import { FaaSContext, IFaaSStarter, MidwayFaaSInfo } from './interface';
 import { join } from 'path';
 import { existsSync } from 'fs';
-import { getClassMetadata, listModule, listPreloadModule, REQUEST_OBJ_CTX_KEY, } from 'injection';
+import {
+  getClassMetadata,
+  listModule,
+  listPreloadModule,
+  REQUEST_OBJ_CTX_KEY,
+  ContainerLoader,
+  MidwayContainer,
+  MidwayHandlerKey,
+  MidwayRequestContainer,
+} from '@midwayjs/core';
 import { FUNC_KEY } from './constant';
-import { ContainerLoader, MidwayContainer, MidwayHandlerKey, MidwayRequestContainer, } from 'midway-core';
-
 import SimpleLock from '@midwayjs/simple-lock';
 
 const LOCK_KEY = '_faas_starter_start_key';
@@ -85,9 +92,9 @@ export class FaaSStarter implements IFaaSStarter {
 
   registerDecorator() {
     // register handler for container
-    this.loader.registerHook(MidwayHandlerKey.CONFIG, key => {
-      return this.globalConfig[ key ];
-    });
+    // this.loader.registerHook(MidwayHandlerKey.CONFIG, key => {
+    //   return this.globalConfig[key];
+    // });
 
     this.loader.registerHook(MidwayHandlerKey.PLUGIN, (key, target) => {
       const ctx = target[ REQUEST_OBJ_CTX_KEY ] || {};
@@ -187,8 +194,8 @@ export class FaaSStarter implements IFaaSStarter {
   getContext(context) {
     if (!context.requestContext) {
       context.requestContext = new MidwayRequestContainer(
-        this.loader.getApplicationContext(),
-        context
+        context,
+        this.loader.getApplicationContext()
       );
     }
     return context;
