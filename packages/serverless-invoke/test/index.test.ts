@@ -10,4 +10,13 @@ describe('/test/index.test.ts', () => {
     });
     assert(result && result.body === 'hello http world');
   });
+
+  it.only('should use origin http trigger in ice + faas demo', async () => {
+    const result: any = await invoke({
+      functionDir: join(__dirname, 'fixtures/ice-faas-ts'),
+      functionName: 'http',
+      data: [{ name: 'params' }],
+    });
+    assert(result && result.body === 'hello http world');
+  });
 });

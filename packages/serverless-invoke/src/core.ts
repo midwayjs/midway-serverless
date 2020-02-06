@@ -6,11 +6,12 @@
   3. 开源版: 【创建runtime、创建trigger】封装为平台invoke包，提供getInvoke方法，会传入args与入口方法，返回invoke方法
 */
 import { FaaSStarterClass } from './utils';
-import { execSync } from 'child_process';
 import { resolve } from 'path';
-import { existsSync, writeFileSync, ensureDirSync } from 'fs-extra';
+import { ensureDirSync, existsSync } from 'fs-extra';
 import { loadSpec } from '@midwayjs/fcli-command-core';
 import { writeWrapper } from '@midwayjs/serverless-spec-builder';
+import { AnalyzeResult, Locator } from '@midwayjs/locate';
+import { tsCompile, tsIntegrationProjectCompile } from '@midwayjs/faas-util-ts-compile';
 
 interface InvokeOptions {
   baseDir?: string;         // 目录，默认为process.cwd
@@ -28,6 +29,7 @@ export class InvokeCore {
   spec: any;
   buildDir: string;
   wrapperInfo: any;
+  codeAnalyzeResult: AnalyzeResult;
 
   constructor(options: InvokeOptions) {
     this.options = options;
@@ -60,7 +62,7 @@ export class InvokeCore {
 
   getFunctionInfo(functionName?: string) {
     functionName = functionName || this.options.functionName;
-    return this.spec && this.spec.functions && this.spec.functions[functionName] || {};
+    return this.spec && this.spec.functions && this.spec.functions[ functionName ] || {};
   }
 
   async getInvokeFunction() {
@@ -71,27 +73,45 @@ export class InvokeCore {
   async buildTS() {
     const { baseDir } = this.options;
     process.env.MIDWAY_TS_MODE = 'true';
+
+    // 分析目录结构
+    const locator = new Locator(baseDir);
+    this.codeAnalyzeResult = await locator.run();
+    if (this.codeAnalyzeResult.integrationProject) {
+      await tsIntegrationProjectCompile(baseDir, {
+        sourceDir: 'src',
+        buildRoot: this.codeAnalyzeResult.tsBuildRoot,
+        tsCodeRoot: this.codeAnalyzeResult.tsCodeRoot
+      });
+    } else {
+      await tsCompile(baseDir, {
+        source: 'src',
+        tsConfigName: 'tsconfig.json',
+        clean: true,
+      });
+    }
+
     const tsconfig = resolve(baseDir, 'tsconfig.json');
     // 非ts
     if (!existsSync(tsconfig)) {
       return;
     }
-    const distTsconfig = resolve(this.buildDir, 'tsconfig.json');
-    if (!existsSync(distTsconfig)) { // midway-core 扫描判断isTsMode需要
-      writeFileSync(distTsconfig, '{}');
-    }
-    let tsc = 'tsc';
-    const tscBuildDir = resolve(this.buildDir, 'src');
-    try {
-      tsc = resolve(require.resolve('typescript'), '../../bin/tsc');
-    } catch (e) {
-      return this.invokeError('need typescript');
-    }
-    try {
-      await execSync(`cd ${baseDir};${tsc} --inlineSourceMap --outDir ${tscBuildDir} --skipLibCheck --skipDefaultLibCheck`);
-    } catch (e) {
-      this.invokeError(e);
-    }
+    // const distTsconfig = resolve(this.buildDir, 'tsconfig.json');
+    // if (!existsSync(distTsconfig)) { // midway-core 扫描判断isTsMode需要
+    //   writeFileSync(distTsconfig, '{}');
+    // }
+    // let tsc = 'tsc';
+    // const tscBuildDir = resolve(this.buildDir, 'src');
+    // try {
+    //   tsc = resolve(require.resolve('typescript'), '../../bin/tsc');
+    // } catch (e) {
+    //   return this.invokeError('need typescript');
+    // }
+    // try {
+    //   await execSync(`cd ${baseDir};${tsc} --inlineSourceMap --outDir ${tscBuildDir} --skipLibCheck --skipDefaultLibCheck`);
+    // } catch (e) {
+    //   this.invokeError(e);
+    // }
   }
 
   async invoke(...args: any) {
@@ -113,7 +133,7 @@ export class InvokeCore {
     this.wrapperInfo = wrapperInfo;
     try {
       const handler = require(fileName);
-      return handler[handlerName];
+      return handler[ handlerName ];
     } catch (e) {
       this.invokeError(e);
     }
@@ -129,7 +149,7 @@ export class InvokeCore {
       baseDir: this.baseDir,
       service: {
         layers: this.spec.layers,
-        functions: {[this.options.functionName]: funcInfo}
+        functions: { [ this.options.functionName ]: funcInfo }
       },
       distDir: this.buildDir,
       starter
