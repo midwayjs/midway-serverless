@@ -93,7 +93,7 @@ export class InvokeCore {
         tsCodeRoot: this.codeAnalyzeResult.tsCodeRoot
       });
 
-      // copy tsconfig
+      // remove tsconfig
       await remove(join(baseDir, 'tsconfig_integration_faas.json'));
     } else {
       ensureDirSync(this.buildDir);
