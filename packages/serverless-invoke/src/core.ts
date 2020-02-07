@@ -6,8 +6,8 @@
   3. 开源版: 【创建runtime、创建trigger】封装为平台invoke包，提供getInvoke方法，会传入args与入口方法，返回invoke方法
 */
 import { FaaSStarterClass } from './utils';
-import { resolve } from 'path';
-import { ensureDirSync, existsSync } from 'fs-extra';
+import { resolve, join } from 'path';
+import { ensureDirSync, existsSync, remove } from 'fs-extra';
 import { loadSpec } from '@midwayjs/fcli-command-core';
 import { writeWrapper } from '@midwayjs/serverless-spec-builder';
 import { AnalyzeResult, Locator } from '@midwayjs/locate';
@@ -20,6 +20,7 @@ interface InvokeOptions {
   handler?: string;         // 函数的handler方法
   trigger?: string;         // 触发器
   buildDir?: string;        // 构建目录
+  sourceDir?: string;       // 函数源码目录
 }
 
 export class InvokeCore {
@@ -35,7 +36,6 @@ export class InvokeCore {
     this.options = options;
     this.baseDir = options.baseDir || process.cwd();
     this.buildDir = resolve(this.baseDir, options.buildDir || 'dist');
-    ensureDirSync(this.buildDir);
     this.spec = loadSpec(this.baseDir);
   }
 
@@ -72,18 +72,31 @@ export class InvokeCore {
 
   async buildTS() {
     const { baseDir } = this.options;
+    const tsconfig = resolve(baseDir, 'tsconfig.json');
+    // 非ts
+    if (!existsSync(tsconfig)) {
+      return;
+    }
     process.env.MIDWAY_TS_MODE = 'true';
-
     // 分析目录结构
     const locator = new Locator(baseDir);
-    this.codeAnalyzeResult = await locator.run();
+    this.codeAnalyzeResult = await locator.run({
+      tsCodeRoot: this.options.sourceDir,
+      tsBuildRoot: this.options.buildDir,
+    });
     if (this.codeAnalyzeResult.integrationProject) {
+      // 一体化调整目录
+      this.buildDir = this.codeAnalyzeResult.tsBuildRoot;
       await tsIntegrationProjectCompile(baseDir, {
         sourceDir: 'src',
-        buildRoot: this.codeAnalyzeResult.tsBuildRoot,
+        buildRoot: this.buildDir,
         tsCodeRoot: this.codeAnalyzeResult.tsCodeRoot
       });
+
+      // copy tsconfig
+      await remove(join(baseDir, 'tsconfig_integration_faas.json'));
     } else {
+      ensureDirSync(this.buildDir);
       await tsCompile(baseDir, {
         source: 'src',
         tsConfigName: 'tsconfig.json',
@@ -91,11 +104,6 @@ export class InvokeCore {
       });
     }
 
-    const tsconfig = resolve(baseDir, 'tsconfig.json');
-    // 非ts
-    if (!existsSync(tsconfig)) {
-      return;
-    }
     // const distTsconfig = resolve(this.buildDir, 'tsconfig.json');
     // if (!existsSync(distTsconfig)) { // midway-core 扫描判断isTsMode需要
     //   writeFileSync(distTsconfig, '{}');

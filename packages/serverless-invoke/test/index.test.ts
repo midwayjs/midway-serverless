@@ -14,7 +14,7 @@ describe('/test/index.test.ts', () => {
   it.only('should use origin http trigger in ice + faas demo', async () => {
     const result: any = await invoke({
       functionDir: join(__dirname, 'fixtures/ice-faas-ts'),
-      functionName: 'http',
+      functionName: 'test1',
       data: [{ name: 'params' }],
     });
     assert(result && result.body === 'hello http world');
