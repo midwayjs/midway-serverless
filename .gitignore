@@ -22,5 +22,4 @@ AUTHORS
 .aliyun_credentials
 .env_temp
 serverless.zip
-/packages/serverless-invoke/test/fixtures/ice-faas-ts-standard/build
-/packages/serverless-invoke/test/fixtures/ice-faas-ts-pkg-options/build
+/packages/serverless-invoke/test/fixtures/*/build
