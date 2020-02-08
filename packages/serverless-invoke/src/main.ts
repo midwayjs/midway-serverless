@@ -65,6 +65,7 @@ export const getInvoke = (Invoke, debugPath) => {
       trigger: options.trigger,
       isDebug: options.isDebug,
       sourceDir: options.sourceDir,
+      clean: options.clean,
     });
     return invokeFun.invoke([].concat(options.data));
   };

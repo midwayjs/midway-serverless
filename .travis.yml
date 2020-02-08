@@ -10,7 +10,6 @@ before_script:
   - npm run bootstrap
   - npm run build
 script:
-  - cd packages/serverless-invoke
   - npm run cov
 after_script:
   - codecov

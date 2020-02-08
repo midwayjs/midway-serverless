@@ -6,15 +6,12 @@
   3. 开源版: 【创建runtime、创建trigger】封装为平台invoke包，提供getInvoke方法，会传入args与入口方法，返回invoke方法
 */
 import { FaaSStarterClass } from './utils';
-import { resolve, join } from 'path';
-import { existsSync, remove } from 'fs-extra';
+import { join, resolve } from 'path';
+import { existsSync, move, remove } from 'fs-extra';
 import { loadSpec } from '@midwayjs/fcli-command-core';
 import { writeWrapper } from '@midwayjs/serverless-spec-builder';
 import { AnalyzeResult, Locator } from '@midwayjs/locate';
-import {
-  tsCompile,
-  tsIntegrationProjectCompile,
-} from '@midwayjs/faas-util-ts-compile';
+import { tsCompile, tsIntegrationProjectCompile, } from '@midwayjs/faas-util-ts-compile';
 
 interface InvokeOptions {
   baseDir?: string; // 目录，默认为process.cwd
@@ -24,6 +21,7 @@ interface InvokeOptions {
   trigger?: string; // 触发器
   buildDir?: string; // 构建目录
   sourceDir?: string; // 函数源码目录
+  clean?: boolean; // 清理调试目录
 }
 
 export class InvokeCore {
@@ -84,58 +82,47 @@ export class InvokeCore {
     if (!existsSync(tsconfig)) {
       return;
     }
+    // 设置走编译，扫描 dist 目录
+    process.env.MIDWAY_TS_MODE = 'false';
+    const debugRoot = this.options.buildDir || 'faas_debug_tmp';
     // 分析目录结构
     const locator = new Locator(baseDir);
     this.codeAnalyzeResult = await locator.run({
       tsCodeRoot: this.options.sourceDir,
-      tsBuildRoot: this.options.buildDir,
+      tsBuildRoot: debugRoot,
     });
+    this.buildDir = this.codeAnalyzeResult.tsBuildRoot;
+    // clean directory first
+    await this.cleanTarget(this.buildDir);
     if (this.codeAnalyzeResult.integrationProject) {
-      process.env.MIDWAY_TS_MODE = 'false';
       // 一体化调整目录
-      this.buildDir = this.codeAnalyzeResult.tsBuildRoot;
       await tsIntegrationProjectCompile(baseDir, {
         sourceDir: 'src',
         buildRoot: this.buildDir,
         tsCodeRoot: this.codeAnalyzeResult.tsCodeRoot,
       });
-
       // remove tsconfig
-      await remove(join(baseDir, 'tsconfig_integration_faas.json'));
+      await move(join(baseDir, 'tsconfig_integration_faas.json'), join(this.buildDir, 'tsconfig.json'));
     } else {
-      process.env.MIDWAY_TS_MODE = 'false';
-      // ensureDirSync(this.buildDir);
-      this.buildDir = baseDir;
+      // TODO 重构 midway-bin 不生成 tsconfig
       await tsCompile(baseDir, {
         source: 'src',
         tsConfigName: 'tsconfig.json',
         clean: true,
       });
+      await move(join(baseDir, 'dist'), join(this.buildDir, 'dist'));
     }
-
-    // const distTsconfig = resolve(this.buildDir, 'tsconfig.json');
-    // if (!existsSync(distTsconfig)) { // midway-core 扫描判断isTsMode需要
-    //   writeFileSync(distTsconfig, '{}');
-    // }
-    // let tsc = 'tsc';
-    // const tscBuildDir = resolve(this.buildDir, 'src');
-    // try {
-    //   tsc = resolve(require.resolve('typescript'), '../../bin/tsc');
-    // } catch (e) {
-    //   return this.invokeError('need typescript');
-    // }
-    // try {
-    //   await execSync(`cd ${baseDir};${tsc} --inlineSourceMap --outDir ${tscBuildDir} --skipLibCheck --skipDefaultLibCheck`);
-    // } catch (e) {
-    //   this.invokeError(e);
-    // }
   }
 
   async invoke(...args: any) {
     await this.buildTS();
     const invoke = await this.getInvokeFunction();
     this.checkDebug();
-    return invoke(...args);
+    const result = await invoke(...args);
+    if (false !== this.options.clean) {
+      await this.cleanTarget(this.buildDir);
+    }
+    return result;
   }
 
   async invokeError(err) {
@@ -209,5 +196,11 @@ export class InvokeCore {
           : ''
       }
       */`);
+  }
+
+  private async cleanTarget(p: string) {
+    if (existsSync(p)) {
+      await remove(p);
+    }
   }
 }
