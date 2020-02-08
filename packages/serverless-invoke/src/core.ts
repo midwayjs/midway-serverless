@@ -77,7 +77,6 @@ export class InvokeCore {
     if (!existsSync(tsconfig)) {
       return;
     }
-    process.env.MIDWAY_TS_MODE = 'true';
     // 分析目录结构
     const locator = new Locator(baseDir);
     this.codeAnalyzeResult = await locator.run({
@@ -85,6 +84,7 @@ export class InvokeCore {
       tsBuildRoot: this.options.buildDir,
     });
     if (this.codeAnalyzeResult.integrationProject) {
+      process.env.MIDWAY_TS_MODE = 'false';
       // 一体化调整目录
       this.buildDir = this.codeAnalyzeResult.tsBuildRoot;
       await tsIntegrationProjectCompile(baseDir, {
@@ -96,6 +96,7 @@ export class InvokeCore {
       // remove tsconfig
       await remove(join(baseDir, 'tsconfig_integration_faas.json'));
     } else {
+      process.env.MIDWAY_TS_MODE = 'true';
       ensureDirSync(this.buildDir);
       await tsCompile(baseDir, {
         source: 'src',
