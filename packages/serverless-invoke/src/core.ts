@@ -7,20 +7,23 @@
 */
 import { FaaSStarterClass } from './utils';
 import { resolve, join } from 'path';
-import { ensureDirSync, existsSync, remove } from 'fs-extra';
+import { existsSync, remove } from 'fs-extra';
 import { loadSpec } from '@midwayjs/fcli-command-core';
 import { writeWrapper } from '@midwayjs/serverless-spec-builder';
 import { AnalyzeResult, Locator } from '@midwayjs/locate';
-import { tsCompile, tsIntegrationProjectCompile } from '@midwayjs/faas-util-ts-compile';
+import {
+  tsCompile,
+  tsIntegrationProjectCompile,
+} from '@midwayjs/faas-util-ts-compile';
 
 interface InvokeOptions {
-  baseDir?: string;         // 目录，默认为process.cwd
-  functionName: string;     // 函数名
-  isDebug?: boolean;         // 是否debug
-  handler?: string;         // 函数的handler方法
-  trigger?: string;         // 触发器
-  buildDir?: string;        // 构建目录
-  sourceDir?: string;       // 函数源码目录
+  baseDir?: string; // 目录，默认为process.cwd
+  functionName: string; // 函数名
+  isDebug?: boolean; // 是否debug
+  handler?: string; // 函数的handler方法
+  trigger?: string; // 触发器
+  buildDir?: string; // 构建目录
+  sourceDir?: string; // 函数源码目录
 }
 
 export class InvokeCore {
@@ -46,7 +49,7 @@ export class InvokeCore {
     const { functionName } = this.options;
     const starter = new FaaSStarterClass({
       baseDir: this.buildDir,
-      functionName
+      functionName,
     });
     await starter.start();
     this.starter = starter;
@@ -55,14 +58,18 @@ export class InvokeCore {
 
   // 获取用户代码中的函数方法
   async getUserFaasHandlerFunction() {
-    const handler = this.options.handler || this.getFunctionInfo().handler || '';
+    const handler =
+      this.options.handler || this.getFunctionInfo().handler || '';
     const starter = await this.getStarter();
     return starter.handleInvokeWrapper(handler);
   }
 
   getFunctionInfo(functionName?: string) {
     functionName = functionName || this.options.functionName;
-    return this.spec && this.spec.functions && this.spec.functions[ functionName ] || {};
+    return (
+      (this.spec && this.spec.functions && this.spec.functions[functionName]) ||
+      {}
+    );
   }
 
   async getInvokeFunction() {
@@ -90,14 +97,15 @@ export class InvokeCore {
       await tsIntegrationProjectCompile(baseDir, {
         sourceDir: 'src',
         buildRoot: this.buildDir,
-        tsCodeRoot: this.codeAnalyzeResult.tsCodeRoot
+        tsCodeRoot: this.codeAnalyzeResult.tsCodeRoot,
       });
 
       // remove tsconfig
       await remove(join(baseDir, 'tsconfig_integration_faas.json'));
     } else {
-      process.env.MIDWAY_TS_MODE = 'true';
-      ensureDirSync(this.buildDir);
+      process.env.MIDWAY_TS_MODE = 'false';
+      // ensureDirSync(this.buildDir);
+      this.buildDir = baseDir;
       await tsCompile(baseDir, {
         source: 'src',
         tsConfigName: 'tsconfig.json',
@@ -142,7 +150,7 @@ export class InvokeCore {
     this.wrapperInfo = wrapperInfo;
     try {
       const handler = require(fileName);
-      return handler[ handlerName ];
+      return handler[handlerName];
     } catch (e) {
       this.invokeError(e);
     }
@@ -158,10 +166,10 @@ export class InvokeCore {
       baseDir: this.baseDir,
       service: {
         layers: this.spec.layers,
-        functions: { [ this.options.functionName ]: funcInfo }
+        functions: { [this.options.functionName]: funcInfo },
       },
       distDir: this.buildDir,
-      starter
+      starter,
     });
     return { fileName, handlerName: name };
   }
@@ -183,7 +191,9 @@ export class InvokeCore {
 
       请点击左侧文件目录中的代码文件进行调试
 
-      ${this.wrapperInfo ? `
+      ${
+        this.wrapperInfo
+          ? `
       函数的入口文件所在:
 
       ${this.wrapperInfo.fileName}  。
@@ -195,7 +205,9 @@ export class InvokeCore {
 
       感谢使用 midway-faas。
 
-      ` : ''}
+      `
+          : ''
+      }
       */`);
   }
 }
