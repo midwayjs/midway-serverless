@@ -11,11 +11,21 @@ describe('/test/index.test.ts', () => {
     assert(result && result.body === 'hello http world');
   });
 
-  it('should use origin http trigger in ice + faas demo', async () => {
+  it('should use origin http trigger in ice + faas demo by package options', async () => {
     const result: any = await invoke({
-      functionDir: join(__dirname, 'fixtures/ice-faas-ts'),
+      functionDir: join(__dirname, 'fixtures/ice-faas-ts-pkg-options'),
       functionName: 'test1',
       data: [{ name: 'params' }],
+    });
+    assert(result && result.body === 'hello http world');
+  });
+
+  it('should use origin http trigger in ice + faas demo by args', async () => {
+    const result: any = await invoke({
+      functionDir: join(__dirname, 'fixtures/ice-faas-ts-pkg-options'),
+      functionName: 'test1',
+      data: [{ name: 'params' }],
+      sourceDir: 'src/apis',
     });
     assert(result && result.body === 'hello http world');
   });
