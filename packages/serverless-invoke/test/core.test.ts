@@ -1,7 +1,7 @@
 import { InvokeCore } from '../src/core';
 import { join } from 'path';
 import * as assert from 'assert';
-describe('/test/core.test.ts', () => {
+describe.only('/test/core.test.ts', () => {
   it('single process invoke', async () => {
     const invokeCore = new InvokeCore({
       functionName: 'http',
