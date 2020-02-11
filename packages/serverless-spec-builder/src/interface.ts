@@ -115,7 +115,7 @@ export interface SpecStructure {
 }
 
 export interface Builder {
-  validate();
+  validate(): boolean;
   toJSON();
   getProvider(): ProviderStructure;
   getFunctions(): FunctionsStructure;
