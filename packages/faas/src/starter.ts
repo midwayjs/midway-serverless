@@ -23,7 +23,7 @@ function isTypeScriptEnvironment() {
   if ('false' === TS_MODE_PROCESS_FLAG) {
     return false;
   }
-  return TS_MODE_PROCESS_FLAG === 'true' || !!require.extensions[ '.ts' ];
+  return TS_MODE_PROCESS_FLAG === 'true' || !!require.extensions['.ts'];
 }
 
 export class FaaSStarter implements IFaaSStarter {
@@ -33,6 +33,7 @@ export class FaaSStarter implements IFaaSStarter {
   defaultRouterName = 'handler';
   loader: ContainerLoader;
   globalConfig: object;
+  globalMiddleware: string[];
   isTsMode: boolean;
   funMappingStore: Map<string, any> = new Map();
   logger;
@@ -42,6 +43,7 @@ export class FaaSStarter implements IFaaSStarter {
     options: {
       baseDir?: string;
       config?: object;
+      middleware?: string[];
       typescript?: boolean;
       preloadModules?: any[];
       logger?: any;
@@ -49,6 +51,7 @@ export class FaaSStarter implements IFaaSStarter {
   ) {
     this.appDir = options.baseDir || process.cwd();
     this.globalConfig = options.config || {};
+    this.globalMiddleware = options.middleware || [];
     this.logger = options.logger || console;
     this.isTsMode = this.getTsMode(options.typescript);
     this.baseDir = this.getBaseDir();
@@ -75,8 +78,8 @@ export class FaaSStarter implements IFaaSStarter {
       if (existsSync(join(this.appDir, 'package.json'))) {
         const pkg = require(join(this.appDir, 'package.json'));
         if (
-          (pkg[ 'devDependencies' ] && pkg[ 'devDependencies' ][ 'typescript' ]) ||
-          (pkg[ 'dependencies' ] && pkg[ 'dependencies' ][ 'typescript' ])
+          (pkg['devDependencies'] && pkg['devDependencies']['typescript']) ||
+          (pkg['dependencies'] && pkg['dependencies']['typescript'])
         ) {
           return true;
         }
@@ -100,13 +103,13 @@ export class FaaSStarter implements IFaaSStarter {
 
   registerDecorator() {
     this.loader.registerHook(MidwayHandlerKey.PLUGIN, (key, target) => {
-      const ctx = target[ REQUEST_OBJ_CTX_KEY ] || {};
-      return ctx[ key ];
+      const ctx = target[REQUEST_OBJ_CTX_KEY] || {};
+      return ctx[key];
     });
 
     this.loader.registerHook(MidwayHandlerKey.LOGGER, (key, target) => {
-      const ctx = target[ REQUEST_OBJ_CTX_KEY ] || {};
-      return ctx[ 'logger' ];
+      const ctx = target[REQUEST_OBJ_CTX_KEY] || {};
+      return ctx['logger'];
     });
   }
 
@@ -124,8 +127,11 @@ export class FaaSStarter implements IFaaSStarter {
       const context: FaaSContext = this.getContext(args.shift());
       if (funOptions.mod) {
         // invoke middleware, just for http
-        if (funOptions.middleware && funOptions.middleware.length) {
-          const mw: any[] = await this.formatMiddlewares(funOptions.middleware);
+        let fnMiddleawere = [];
+        fnMiddleawere = fnMiddleawere.concat(this.globalMiddleware);
+        fnMiddleawere = fnMiddleawere.concat(funOptions.middleware);
+        if (fnMiddleawere.length) {
+          const mw: any[] = await this.formatMiddlewares(fnMiddleawere);
           mw.push(async ctx => {
             // invoke handler
             const result = this.invokeHandler(funOptions.mod, ctx, args);
@@ -151,9 +157,9 @@ export class FaaSStarter implements IFaaSStarter {
     const handlerName =
       this.getFunctionHandler(context, args, funModule) ||
       this.defaultHandlerMethod;
-    if (funModule[ handlerName ]) {
+    if (funModule[handlerName]) {
       // invoke real method
-      return funModule[ handlerName ].apply(funModule, args);
+      return funModule[handlerName].apply(funModule, args);
     }
   }
 
