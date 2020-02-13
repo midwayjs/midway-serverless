@@ -500,6 +500,7 @@ export class PackagePlugin extends BasePlugin {
             allPaths.push(httpEvent.http.path);
             if (!deployOrigin) {
               // 不把原有的函数进行部署
+              this.core.cli.log(` - using function '${aggregationName}' to deploy '${functionName}'`);
               delete this.core.service.functions[ functionName ];
             }
             return {
@@ -513,7 +514,7 @@ export class PackagePlugin extends BasePlugin {
       let currentPath = commonPrefix(allPaths);
       currentPath = currentPath ? `${currentPath}/*` : '/*';
       this.core.cli.log(
-        ` - using '${currentPath}' to deploy '${allPaths.join(`', '`)}'`
+        ` - using path '${currentPath}' to deploy '${allPaths.join(`', '`)}'`
       );
       if (allAggregationPaths.indexOf(currentPath) !== -1) {
         console.error(
@@ -539,8 +540,7 @@ export class PackagePlugin extends BasePlugin {
 
   finalize() {
     if (this.cacheSpec) {
-      console.log('resume');
-      writeFileSync(this.cacheSpec.specFile, this.cacheSpec.specData);
+      writeFileSync(this.cacheSpec.specFile.path, this.cacheSpec.specData);
     }
   }
 }
