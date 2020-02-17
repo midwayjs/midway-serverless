@@ -29,13 +29,22 @@ export class CLI extends BaseCLI {
     }
 
     if (this.argv.v || this.argv.version) {
-      let version = '';
-      try {
-        version = require('../package.json').version;
-      } catch (E) {}
-      const log = this.loadLog();
-      log.log(`@midwayjs/faas-cli v${version}`);
+      this.displayVersion();
     }
+  }
+
+  displayVersion() {
+    let version = '';
+    try {
+      version = require('../package.json').version;
+    } catch (E) {}
+    const log = this.loadLog();
+    log.log(`@midwayjs/faas-cli v${version}`);
+  }
+
+  displayUsage(commandsArray, usage, coreInstance) {
+    this.displayVersion();
+    super.displayUsage(commandsArray, usage, coreInstance);
   }
 
   async checkProvider() {
