@@ -2,7 +2,11 @@ import { exists } from 'mz/fs';
 import { join } from 'path';
 
 export const isTsEnv = () => {
-  return require.extensions['.ts'];
+  const TS_MODE_PROCESS_FLAG = process.env.MIDWAY_TS_MODE;
+  if ('false' === TS_MODE_PROCESS_FLAG) {
+    return false;
+  }
+  return TS_MODE_PROCESS_FLAG === 'true' || !!require.extensions['.ts'];
 };
 
 export const asyncWrapper = handler => {
