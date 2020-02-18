@@ -120,6 +120,13 @@ export abstract class InvokeCore implements IInvoke {
       });
       await move(join(baseDir, 'dist'), join(this.buildDir, 'dist'));
     }
+
+    // 针对多次调用清理缓存
+    Object.keys(require.cache).forEach(path => {
+      if (path.indexOf(this.buildDir) !== -1) {
+        delete require.cache[path];
+      }
+    });
   }
 
   public async invoke(...args: any) {
