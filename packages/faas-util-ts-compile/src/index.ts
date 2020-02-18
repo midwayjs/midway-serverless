@@ -43,7 +43,7 @@ export const tsIntegrationProjectCompile = async (baseDir, options: {
     exclude: ['dist', 'node_modules', 'test'],
   });
   await tsCompile(baseDir, {
-    clean: options.incremental,
+    clean: options.incremental ? false : true,
     tsConfigName: tsFaaSConfigFilename,
     source: options.sourceDir,
   });

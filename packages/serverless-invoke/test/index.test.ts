@@ -28,7 +28,29 @@ describe('/test/index.test.ts', () => {
     assert(result && result.body === 'hello http world');
   });
 
-  it('should use origin http trigger in ice + faas demo by args', async () => {
+  it('should use origin http trigger in ice + faas demo by args, with incremental: false', async () => {
+    const result: any = await invoke({
+      functionDir: join(__dirname, 'fixtures/ice-faas-ts-standard'),
+      functionName: 'test1',
+      data: [{ name: 'params' }],
+      sourceDir: 'src/apis',
+      incremental: false,
+    });
+    assert(result && result.body === 'hello http world');
+  });
+
+  it('should use origin http trigger in ice + faas demo by args, with incremental: true, first', async () => {
+    const result: any = await invoke({
+      functionDir: join(__dirname, 'fixtures/ice-faas-ts-standard'),
+      functionName: 'test1',
+      data: [{ name: 'params' }],
+      sourceDir: 'src/apis',
+      incremental: true,
+    });
+    assert(result && result.body === 'hello http world');
+  });
+
+  it('should use origin http trigger in ice + faas demo by args, with incremental: true, second', async () => {
     const result: any = await invoke({
       functionDir: join(__dirname, 'fixtures/ice-faas-ts-standard'),
       functionName: 'test1',
