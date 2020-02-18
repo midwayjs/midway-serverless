@@ -119,7 +119,6 @@ export abstract class InvokeCore implements IInvoke {
         source: 'src',
         tsConfigName: 'tsconfig.json',
         clean: true,
-        incremental: this.options.incremental,
       });
       await move(join(baseDir, 'dist'), join(this.buildDir, 'dist'), opts);
     }
