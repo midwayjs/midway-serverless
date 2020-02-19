@@ -1,5 +1,5 @@
-import { join, relative } from 'path';
-import { remove, writeJSON } from 'fs-extra';
+import { join, relative, resolve } from 'path';
+import { remove, writeJSON, readFileSync, writeFileSync } from 'fs-extra';
 import { BuildCommand } from 'midway-bin';
 
 export const tsIntegrationProjectCompile = async (baseDir, options: {
@@ -7,6 +7,7 @@ export const tsIntegrationProjectCompile = async (baseDir, options: {
   buildRoot: string;
   tsCodeRoot: string;
   incremental: boolean;
+  temTsConfig: any; // 临时的ts配置
 }) => {
   const tsFaaSConfigFilename = 'tsconfig_integration_faas.json';
   // 生成一个临时 tsconfig
@@ -46,6 +47,7 @@ export const tsIntegrationProjectCompile = async (baseDir, options: {
     clean: options.incremental,
     tsConfigName: tsFaaSConfigFilename,
     source: options.sourceDir,
+    temTsConfig: options.temTsConfig,
   });
 };
 
@@ -61,14 +63,37 @@ export const tsCompile = async (baseDir: string, options: {
   source?: string;
   tsConfigName?: string;
   clean?: boolean;
+  temTsConfig?: any; // extra tsconfig
 } = {}) => {
   const builder = new BuildCommand();
+  const tsConfigJson = options.tsConfigName || 'tsconfig.json';
+  let resumeTsConfig = null;
+
+  if (options.temTsConfig) {
+    try {
+      const tsConfigFile = resolve(baseDir, tsConfigJson);
+      const tsConfigData = readFileSync(tsConfigFile).toString();
+      const tsJson = JSON.parse(tsConfigData);
+      Object.assign(tsJson.compilerOptions, options.temTsConfig);
+      await writeJSON(tsConfigFile, tsJson, { spaces: '  ' });
+      resumeTsConfig = () => {
+        try {
+          writeFileSync(tsConfigFile, tsConfigData);
+        } catch (e) { }
+      };
+    } catch (e) {}
+  }
+
   await builder.run({
     cwd: baseDir,
     argv: {
       clean: typeof options.clean === 'undefined' ? true : options.clean,
-      project: options.tsConfigName || 'tsconfig.json',
+      project: tsConfigJson,
       srcDir: options.source || 'src',
     },
   });
+
+  if (resumeTsConfig) {
+    resumeTsConfig();
+  }
 };
