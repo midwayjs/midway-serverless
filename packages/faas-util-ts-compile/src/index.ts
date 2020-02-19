@@ -7,8 +7,8 @@ export const tsIntegrationProjectCompile = async (baseDir, options: {
   buildRoot: string;
   tsCodeRoot: string;
   incremental: boolean;
-  clean: boolean;
   temTsConfig?: any; // 临时的ts配置
+  clean: boolean;
 }) => {
   const tsFaaSConfigFilename = 'tsconfig_integration_faas.json';
   // 生成一个临时 tsconfig
@@ -47,8 +47,8 @@ export const tsIntegrationProjectCompile = async (baseDir, options: {
   await tsCompile(baseDir, {
     tsConfigName: tsFaaSConfigFilename,
     source: options.sourceDir,
-    clean: options.clean,
     temTsConfig: options.temTsConfig,
+    clean: options.clean,
   });
 };
 
@@ -69,6 +69,10 @@ export const tsCompile = async (baseDir: string, options: {
   const builder = new BuildCommand();
   let tsConfigJson = options.tsConfigName || 'tsconfig.json';
   let temTsConfigFile;
+<<<<<<< HEAD
+=======
+
+>>>>>>> 887ac976fba343bec5157887db2da65f2f12adfc
   if (options.temTsConfig) {
     try {
       temTsConfigFile = '.tmp_tsconfig.log.json';
