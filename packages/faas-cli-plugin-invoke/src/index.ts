@@ -43,6 +43,7 @@ export class InvokePlugin extends BasePlugin {
       } catch (e) {
         const errorLog = this.core.cli.error || this.core.cli.log;
         errorLog(e && e.message ? `[Error] ${e.message}` : e);
+        process.exit(1);
       }
     },
   };
