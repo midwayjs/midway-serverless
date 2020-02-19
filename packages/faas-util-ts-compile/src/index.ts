@@ -69,10 +69,6 @@ export const tsCompile = async (baseDir: string, options: {
   const builder = new BuildCommand();
   let tsConfigJson = options.tsConfigName || 'tsconfig.json';
   let temTsConfigFile;
-<<<<<<< HEAD
-=======
-
->>>>>>> 887ac976fba343bec5157887db2da65f2f12adfc
   if (options.temTsConfig) {
     try {
       temTsConfigFile = '.tmp_tsconfig.log.json';
