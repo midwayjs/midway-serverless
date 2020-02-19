@@ -108,7 +108,7 @@ export abstract class InvokeCore implements IInvoke {
         tsCodeRoot: this.codeAnalyzeResult.tsCodeRoot,
         incremental: this.options.incremental,
         temTsConfig: {
-          sourceRoot: resolve(baseDir, 'src')  // for sourceMap
+          sourceRoot: this.codeAnalyzeResult.tsCodeRoot  // for sourceMap
         },
         clean: this.options.clean
       });
