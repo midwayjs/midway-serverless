@@ -7,6 +7,13 @@ describe('/test/index.test.ts', () => {
   afterEach(() => {
     process.env.MIDWAY_TS_MODE = undefined;
   });
+
+  after(async () => {
+    if (existsSync(join(__dirname, 'fixtures/ice-faas-ts-standard/.faas_debug_tmp'))) {
+      await remove(join(__dirname, 'fixtures/ice-faas-ts-standard/.faas_debug_tmp'));
+    }
+  });
+
   it('should use origin http trigger', async () => {
     const result: any = await invoke({
       functionDir: join(__dirname, 'fixtures/baseApp'),
