@@ -1,6 +1,7 @@
 import { join, relative, resolve } from 'path';
-import { remove, writeJSON, readFileSync, writeFileSync } from 'fs-extra';
+import { remove, writeJSON, readFileSync, removeSync } from 'fs-extra';
 import { BuildCommand } from 'midway-bin';
+import { tmpDir } from 'os';
 
 export const tsIntegrationProjectCompile = async (baseDir, options: {
   sourceDir: string;
@@ -68,20 +69,14 @@ export const tsCompile = async (baseDir: string, options: {
 } = {}) => {
   const builder = new BuildCommand();
   const tsConfigJson = options.tsConfigName || 'tsconfig.json';
-  let resumeTsConfig = null;
+  let temTsConfigFile;
 
   if (options.temTsConfig) {
     try {
-      const tsConfigFile = resolve(baseDir, tsConfigJson);
-      const tsConfigData = readFileSync(tsConfigFile).toString();
-      const tsJson = JSON.parse(tsConfigData);
+      temTsConfigFile = resolve(tmpDir(), `${Date.now()}_${Math.random()}.json`);
+      const tsJson = JSON.parse(readFileSync(resolve(baseDir, tsConfigJson)).toString());
       Object.assign(tsJson.compilerOptions, options.temTsConfig);
-      await writeJSON(tsConfigFile, tsJson, { spaces: '  ' });
-      resumeTsConfig = () => {
-        try {
-          writeFileSync(tsConfigFile, tsConfigData);
-        } catch (e) { }
-      };
+      await writeJSON(temTsConfigFile, tsJson);
     } catch (e) {}
   }
 
@@ -89,12 +84,14 @@ export const tsCompile = async (baseDir: string, options: {
     cwd: baseDir,
     argv: {
       clean: typeof options.clean === 'undefined' ? true : options.clean,
-      project: tsConfigJson,
+      project: temTsConfigFile || tsConfigJson,
       srcDir: options.source || 'src',
     },
   });
 
-  if (resumeTsConfig) {
-    resumeTsConfig();
+  if (temTsConfigFile) {
+    try {
+      removeSync(temTsConfigFile);
+    } catch (e) {}
   }
 };
