@@ -109,8 +109,8 @@ export abstract class InvokeCore implements IInvoke {
         incremental: this.options.incremental,
         temTsConfig: {
           sourceRoot: resolve(baseDir, 'src')  // for sourceMap
-        }
-        clean: this.options.clean,
+        },
+        clean: this.options.clean
       });
       // remove tsconfig
       await move(
@@ -123,11 +123,10 @@ export abstract class InvokeCore implements IInvoke {
       await tsCompile(baseDir, {
         source: 'src',
         tsConfigName: 'tsconfig.json',
-        clean: true,
         temTsConfig: {
           sourceRoot: resolve(baseDir, 'src') // for sourceMap
-        }
-        clean: this.options.clean,
+        },
+        clean: this.options.clean
       });
       await move(join(baseDir, 'dist'), join(this.buildDir, 'dist'), opts);
     }
