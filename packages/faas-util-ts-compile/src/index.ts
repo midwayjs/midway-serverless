@@ -70,7 +70,6 @@ export const tsCompile = async (baseDir: string, options: {
   const builder = new BuildCommand();
   const tsConfigJson = options.tsConfigName || 'tsconfig.json';
   let temTsConfigFile;
-
   if (options.temTsConfig) {
     try {
       temTsConfigFile = resolve(tmpdir(), `${Date.now()}_${Math.random()}.json`);
