@@ -9,6 +9,7 @@ export const tsIntegrationProjectCompile = async (baseDir, options: {
   tsCodeRoot: string;
   incremental: boolean;
   temTsConfig: any; // 临时的ts配置
+  clean: boolean;
 }) => {
   const tsFaaSConfigFilename = 'tsconfig_integration_faas.json';
   // 生成一个临时 tsconfig
@@ -45,10 +46,10 @@ export const tsIntegrationProjectCompile = async (baseDir, options: {
     exclude: ['dist', 'node_modules', 'test'],
   });
   await tsCompile(baseDir, {
-    clean: options.incremental,
     tsConfigName: tsFaaSConfigFilename,
     source: options.sourceDir,
     temTsConfig: options.temTsConfig,
+    clean: options.clean,
   });
 };
 
