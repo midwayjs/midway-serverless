@@ -1,7 +1,7 @@
 import { join, relative, resolve } from 'path';
 import { remove, writeJSON, readFileSync, removeSync } from 'fs-extra';
 import { BuildCommand } from 'midway-bin';
-import { tmpDir } from 'os';
+import { tmpdir } from 'os';
 
 export const tsIntegrationProjectCompile = async (baseDir, options: {
   sourceDir: string;
@@ -73,7 +73,7 @@ export const tsCompile = async (baseDir: string, options: {
 
   if (options.temTsConfig) {
     try {
-      temTsConfigFile = resolve(tmpDir(), `${Date.now()}_${Math.random()}.json`);
+      temTsConfigFile = resolve(tmpdir(), `${Date.now()}_${Math.random()}.json`);
       const tsJson = JSON.parse(readFileSync(resolve(baseDir, tsConfigJson)).toString());
       Object.assign(tsJson.compilerOptions, options.temTsConfig);
       await writeJSON(temTsConfigFile, tsJson);
