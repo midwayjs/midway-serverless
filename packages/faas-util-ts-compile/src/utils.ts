@@ -1,4 +1,4 @@
-const getType = (v: any) => (([]).toString.call(v).slice(7, -1).toLowerCase());
+const getType = (v: any) => (({}).toString.call(v).slice(8, -1).toLowerCase());
 export const combineTsConfig = (config, ...tsConfig: any[]) => {
   const combined = config || {};
   for (const config of tsConfig || []) {
@@ -6,17 +6,16 @@ export const combineTsConfig = (config, ...tsConfig: any[]) => {
       const value = config[key];
       const valueType = getType(value);
       if (valueType === 'object') {
-        if (!combined[key]) {
-          combined[key] = {};
-        }
-        Object.assign(combined[key], value);
+        combined[key] = combineTsConfig({}, combined[key], value);
       } else if (valueType === 'array') {
         if (!combined[key]) {
           combined[key] = [];
         }
         combined[key].push(...value);
       } else {
-        combined[key] = value;
+        if (value || value === false) {
+          combined[key] = value;
+        }
       }
     }
   }

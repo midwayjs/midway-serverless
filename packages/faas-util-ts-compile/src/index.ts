@@ -69,7 +69,7 @@ export const tsCompile = async (baseDir: string, options: {
       tsJson = JSON.parse(readFileSync(resolve(baseDir, options.tsConfigName)).toString());
     } catch (e) {}
   }
-  const tsConfig = combineTsConfig(options.innerTsConfig, options.tsConfig, tsJson);
+  const tsConfig = combineTsConfig({}, options.innerTsConfig, options.tsConfig, tsJson);
   await builder.run({
     cwd: baseDir,
     argv: {
