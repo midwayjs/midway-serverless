@@ -1,54 +1,49 @@
 import { join, relative, resolve } from 'path';
-import { remove, writeJSON, readFileSync, removeSync } from 'fs-extra';
+import { readFileSync } from 'fs-extra';
 import { BuildCommand } from 'midway-bin';
+import { combineTsConfig } from './utils';
 
 export const tsIntegrationProjectCompile = async (baseDir, options: {
   sourceDir: string;
   buildRoot: string;
   tsCodeRoot: string;
   incremental: boolean;
-  temTsConfig?: any; // 临时的ts配置
+  tsConfig?: any; // 临时的ts配置
   clean: boolean;
 }) => {
-  const tsFaaSConfigFilename = 'tsconfig_integration_faas.json';
-  // 生成一个临时 tsconfig
-  const tempConfigFilePath = join(baseDir, tsFaaSConfigFilename);
-  await remove(tempConfigFilePath);
-  // 重新写一个新的
-  await writeJSON(tempConfigFilePath, {
-    compileOnSave: true,
-    compilerOptions: {
-      incremental: !!options.incremental,
-      target: 'ES2018',
-      module: 'commonjs',
-      moduleResolution: 'node',
-      experimentalDecorators: true,
-      emitDecoratorMetadata: true,
-      inlineSourceMap: true,
-      noImplicitThis: true,
-      noUnusedLocals: true,
-      stripInternal: true,
-      pretty: true,
-      declaration: true,
-      jsx: 'react',
-      outDir: relative(
-        baseDir,
-        join(options.buildRoot, 'dist')
-      ),
-    },
-    include: [
-      `${relative(
-        baseDir,
-        options.tsCodeRoot
-      )}/**/*`,
-    ],
-    exclude: ['dist', 'node_modules', 'test'],
-  });
   await tsCompile(baseDir, {
-    tsConfigName: tsFaaSConfigFilename,
     source: options.sourceDir,
-    temTsConfig: options.temTsConfig,
+    tsConfig: options.tsConfig,
     clean: options.clean,
+    innerTsConfig: {
+      compileOnSave: true,
+      compilerOptions: {
+        incremental: !!options.incremental,
+        target: 'ES2018',
+        module: 'commonjs',
+        moduleResolution: 'node',
+        experimentalDecorators: true,
+        emitDecoratorMetadata: true,
+        inlineSourceMap: true,
+        noImplicitThis: true,
+        noUnusedLocals: true,
+        stripInternal: true,
+        pretty: true,
+        declaration: true,
+        jsx: 'react',
+        outDir: relative(
+          baseDir,
+          join(options.buildRoot, 'dist')
+        ),
+      },
+      include: [
+        `${relative(
+          baseDir,
+          options.tsCodeRoot
+        )}/**/*`,
+      ],
+      exclude: ['dist', 'node_modules', 'test'],
+    }
   });
 };
 
@@ -64,34 +59,24 @@ export const tsCompile = async (baseDir: string, options: {
   source?: string;
   tsConfigName?: string;
   clean?: boolean;
-  temTsConfig?: any; // extra tsconfig
+  innerTsConfig?: any;
+  tsConfig?: any; // extra tsconfig
 } = {}) => {
   const builder = new BuildCommand();
-  let tsConfigJson = options.tsConfigName || 'tsconfig.json';
-  let temTsConfigFile;
-  if (options.temTsConfig) {
+  let tsJson = null;
+  if (options.tsConfigName) {
     try {
-      temTsConfigFile = '.tmp_tsconfig.log.json';
-      const tsJson = JSON.parse(readFileSync(resolve(baseDir, tsConfigJson)).toString());
-      Object.assign(tsJson.compilerOptions, options.temTsConfig);
-      tsConfigJson = temTsConfigFile;
-      temTsConfigFile = resolve(baseDir, temTsConfigFile);
-      await writeJSON(temTsConfigFile, tsJson);
+      tsJson = JSON.parse(readFileSync(resolve(baseDir, options.tsConfigName)).toString());
     } catch (e) {}
   }
-
+  const tsConfig = combineTsConfig(options.innerTsConfig, options.tsConfig, tsJson);
   await builder.run({
     cwd: baseDir,
     argv: {
+      project: '',
       clean: typeof options.clean === 'undefined' ? true : options.clean,
-      project: tsConfigJson,
+      tsConfig,
       srcDir: options.source || 'src',
     },
   });
-
-  if (temTsConfigFile) {
-    try {
-      removeSync(temTsConfigFile);
-    } catch (e) {}
-  }
 };

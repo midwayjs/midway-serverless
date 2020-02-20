@@ -107,8 +107,10 @@ export abstract class InvokeCore implements IInvoke {
         buildRoot: this.buildDir,
         tsCodeRoot: this.codeAnalyzeResult.tsCodeRoot,
         incremental: this.options.incremental,
-        temTsConfig: {
-          sourceRoot: this.codeAnalyzeResult.tsCodeRoot  // for sourceMap
+        tsConfig: {
+          compilerOptions: {
+            sourceRoot: this.codeAnalyzeResult.tsCodeRoot  // for sourceMap
+          }
         },
         clean: this.options.clean
       });
@@ -123,8 +125,10 @@ export abstract class InvokeCore implements IInvoke {
       await tsCompile(baseDir, {
         source: 'src',
         tsConfigName: 'tsconfig.json',
-        temTsConfig: {
-          sourceRoot: resolve(baseDir, 'src') // for sourceMap
+        tsConfig: {
+          compilerOptions: {
+            sourceRoot: resolve(baseDir, 'src') // for sourceMap
+          }
         },
         clean: this.options.clean
       });
