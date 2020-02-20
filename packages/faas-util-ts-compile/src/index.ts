@@ -11,10 +11,11 @@ export const tsIntegrationProjectCompile = async (baseDir, options: {
   tsConfig?: any; // 临时的ts配置
   clean: boolean;
 }) => {
-  await tsCompile(baseDir, {
+  const tsConfig = await tsCompile(baseDir, {
     source: options.sourceDir,
     tsConfig: options.tsConfig,
     clean: options.clean,
+    incremental: options.incremental,
     innerTsConfig: {
       compileOnSave: true,
       compilerOptions: {
@@ -40,11 +41,12 @@ export const tsIntegrationProjectCompile = async (baseDir, options: {
         `${relative(
           baseDir,
           options.tsCodeRoot
-        )}/**/*`,
+        )}/**/*`
       ],
       exclude: ['dist', 'node_modules', 'test'],
     }
   });
+  return tsConfig;
 };
 
 /**
@@ -61,6 +63,7 @@ export const tsCompile = async (baseDir: string, options: {
   clean?: boolean;
   innerTsConfig?: any;
   tsConfig?: any; // extra tsconfig
+  incremental?: boolean;
 } = {}) => {
   const builder = new BuildCommand();
   let tsJson = null;
@@ -70,6 +73,19 @@ export const tsCompile = async (baseDir: string, options: {
     } catch (e) {}
   }
   const tsConfig = combineTsConfig({}, options.innerTsConfig, options.tsConfig, tsJson);
+
+  if (tsConfig.compilerOptions) {
+    if (tsConfig.compilerOptions.inlineSourceMap) {
+      tsConfig.compilerOptions.sourceMap = false;
+    }
+    if (options.incremental === true || options.incremental === false) {
+      tsConfig.compilerOptions.incremental = options.incremental;
+    }
+    if (tsConfig.compilerOptions.incremental) {
+      tsConfig.compilerOptions.tsBuildInfoFile = resolve(baseDir, '.tsbuildinfo');
+    }
+  }
+
   await builder.run({
     cwd: baseDir,
     argv: {
@@ -79,4 +95,6 @@ export const tsCompile = async (baseDir: string, options: {
       srcDir: options.source || 'src',
     },
   });
+
+  return tsConfig;
 };

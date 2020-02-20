@@ -299,28 +299,19 @@ export class PackagePlugin extends BasePlugin {
       this.core.cli.log(' - Using tradition build mode');
       if (this.codeAnalyzeResult.integrationProject) {
         // 生成一个临时 tsconfig
-        const tempConfigFilePath = join(this.servicePath, 'tsconfig_integration_faas.json');
-
-        await tsIntegrationProjectCompile(this.servicePath, {
-          sourceDir: this.options.sourceDir || 'src',
+        const tsConfig = await tsIntegrationProjectCompile(this.servicePath, {
+          sourceDir: resolve(this.servicePath, 'src'),
           buildRoot: this.midwayBuildPath,
           tsCodeRoot: this.codeAnalyzeResult.tsCodeRoot,
           incremental: false,
           clean: true
         });
-        // 把临时的 tsconfig 移动进去
-        await move(
-          tempConfigFilePath,
-          join(this.midwayBuildPath, 'tsconfig.json'),
-          {
-            overwrite: true,
-          }
-        );
+        writeJSON(join(this.midwayBuildPath, 'tsconfig.json'), tsConfig);
       } else {
         await tsCompile(this.servicePath, {
           clean: true,
           tsConfigName: 'tsconfig.json',
-          source: this.options.sourceDir || 'src',
+          source: resolve(this.servicePath, 'src'),
         });
         // copy dist to artifact directory
         await move(
