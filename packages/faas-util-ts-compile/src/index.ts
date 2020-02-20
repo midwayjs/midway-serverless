@@ -1,10 +1,9 @@
 import { join, relative, resolve } from 'path';
-import { readFileSync } from 'fs-extra';
+import { readFileSync, existsSync } from 'fs-extra';
 import { BuildCommand } from 'midway-bin';
 import { combineTsConfig } from './utils';
 
 export const tsIntegrationProjectCompile = async (baseDir, options: {
-  sourceDir: string;
   buildRoot: string;
   tsCodeRoot: string;
   incremental: boolean;
@@ -12,7 +11,6 @@ export const tsIntegrationProjectCompile = async (baseDir, options: {
   clean: boolean;
 }) => {
   const tsConfig = await tsCompile(baseDir, {
-    source: options.sourceDir,
     tsConfig: options.tsConfig,
     clean: options.clean,
     incremental: options.incremental,
@@ -58,7 +56,6 @@ export const tsIntegrationProjectCompile = async (baseDir, options: {
  * @param options.clean 是否在构建前清理
  */
 export const tsCompile = async (baseDir: string, options: {
-  source?: string;
   tsConfigName?: string;
   clean?: boolean;
   innerTsConfig?: any;
@@ -82,17 +79,22 @@ export const tsCompile = async (baseDir: string, options: {
       tsConfig.compilerOptions.incremental = options.incremental;
     }
     if (tsConfig.compilerOptions.incremental) {
-      tsConfig.compilerOptions.tsBuildInfoFile = resolve(baseDir, '.tsbuildinfo');
+      let tsBuildInfoFile = '';
+      if (tsConfig.compilerOptions.outDir && existsSync(tsConfig.compilerOptions.outDir)) {
+        tsBuildInfoFile = resolve(tsConfig.compilerOptions.outDir, '.tsbuildinfo');
+      } else {
+        const tmpDir = ['build', 'dist'].find(dirName => existsSync(resolve(baseDir, dirName)));
+        tsBuildInfoFile = resolve(tmpDir || baseDir, '.tsbuildinfo');
+      }
+      tsConfig.compilerOptions.tsBuildInfoFile = tsBuildInfoFile;
     }
   }
 
   await builder.run({
     cwd: baseDir,
     argv: {
-      project: '',
       clean: typeof options.clean === 'undefined' ? true : options.clean,
-      tsConfig,
-      srcDir: options.source || 'src',
+      tsConfig
     },
   });
 

@@ -103,7 +103,6 @@ export abstract class InvokeCore implements IInvoke {
     if (this.codeAnalyzeResult.integrationProject) {
       // 一体化调整目录
       await tsIntegrationProjectCompile(baseDir, {
-        sourceDir: resolve(baseDir, 'src'),
         buildRoot: this.buildDir,
         tsCodeRoot: this.codeAnalyzeResult.tsCodeRoot,
         incremental: this.options.incremental,
@@ -115,9 +114,7 @@ export abstract class InvokeCore implements IInvoke {
         clean: this.options.clean
       });
     } else {
-      // TODO 重构 midway-bin 不生成 tsconfig
       await tsCompile(baseDir, {
-        source: resolve(baseDir, 'src'),
         tsConfigName: 'tsconfig.json',
         tsConfig: {
           compilerOptions: {
