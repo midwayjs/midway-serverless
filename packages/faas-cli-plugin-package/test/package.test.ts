@@ -123,7 +123,7 @@ describe('/test/package.test.ts', () => {
     await remove(join(baseDir, '.serverless'));
   });
 
-  describe.only('integration project build', () => {
+  describe('integration project build', () => {
     it('integration project build and use default shared target dir', async () => {
       const baseDir = resolve(__dirname, './fixtures/ice-faas-ts');
       const core = new CommandHookCore({
