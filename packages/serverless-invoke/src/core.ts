@@ -41,7 +41,7 @@ export abstract class InvokeCore implements IInvoke {
   constructor(options: InvokeOptions) {
     options = this.formatOptions(options);
     this.options = options;
-    this.baseDir = options.baseDir || process.cwd();
+    this.baseDir = this.options.baseDir;
     this.buildDir = resolve(this.baseDir, options.buildDir || 'dist');
     this.spec = loadSpec(this.baseDir);
   }
@@ -103,23 +103,24 @@ export abstract class InvokeCore implements IInvoke {
     if (this.codeAnalyzeResult.integrationProject) {
       // 一体化调整目录
       await tsIntegrationProjectCompile(baseDir, {
-        sourceDir: 'src',
         buildRoot: this.buildDir,
         tsCodeRoot: this.codeAnalyzeResult.tsCodeRoot,
         incremental: this.options.incremental,
+        tsConfig: {
+          compilerOptions: {
+            sourceRoot: this.codeAnalyzeResult.tsCodeRoot, // for sourceMap
+          },
+        },
         clean: this.options.clean,
       });
-      // remove tsconfig
-      await move(
-        join(baseDir, 'tsconfig_integration_faas.json'),
-        join(this.buildDir, 'tsconfig.json'),
-        opts
-      );
     } else {
-      // TODO 重构 midway-bin 不生成 tsconfig
       await tsCompile(baseDir, {
-        source: 'src',
         tsConfigName: 'tsconfig.json',
+        tsConfig: {
+          compilerOptions: {
+            sourceRoot: resolve(baseDir, 'src'), // for sourceMap
+          },
+        },
         clean: this.options.clean,
       });
       await move(join(baseDir, 'dist'), join(this.buildDir, 'dist'), opts);
@@ -218,6 +219,9 @@ export abstract class InvokeCore implements IInvoke {
   }
 
   private formatOptions(options: InvokeOptions) {
+    if (!options.baseDir) {
+      options.baseDir = process.cwd();
+    }
     // 开启增量编译，则不自动清理目录
     if (options.incremental) {
       options.clean = false;

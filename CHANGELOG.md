@@ -3,6 +3,50 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.2.30](https://github.com/midwayjs/midway-faas/compare/v0.2.29...v0.2.30) (2020-02-22)
+
+
+### Bug Fixes
+
+* fix options.basedir default value ([#57](https://github.com/midwayjs/midway-faas/issues/57)) ([04edc9f](https://github.com/midwayjs/midway-faas/commit/04edc9f8a23ee17c7ed994fa249f190288f4d40a))
+
+
+
+
+
+## [0.2.29](https://github.com/midwayjs/midway-faas/compare/v0.2.28...v0.2.29) (2020-02-22)
+
+
+### Bug Fixes
+
+* fix hanlder to handler ([#56](https://github.com/midwayjs/midway-faas/issues/56)) ([c272bd7](https://github.com/midwayjs/midway-faas/commit/c272bd78aae12b430553afd041af9223e07b9910))
+
+
+
+
+
+## [0.2.28](https://github.com/midwayjs/midway-faas/compare/v0.2.27...v0.2.28) (2020-02-21)
+
+
+### Bug Fixes
+
+* fix shared dir use relative path ([#55](https://github.com/midwayjs/midway-faas/issues/55)) ([1d309a1](https://github.com/midwayjs/midway-faas/commit/1d309a10efb2460c6b954effefca34ee72c2e979))
+
+
+
+
+
+## [0.2.27](https://github.com/midwayjs/midway-faas/compare/v0.2.26...v0.2.27) (2020-02-21)
+
+
+### Bug Fixes
+
+* invoke source map ([#52](https://github.com/midwayjs/midway-faas/issues/52)) ([9149d2a](https://github.com/midwayjs/midway-faas/commit/9149d2a9a3f3d9ba975588b61c6f9bbeec2e8d86)), closes [#51](https://github.com/midwayjs/midway-faas/issues/51)
+
+
+
+
+
 ## [0.2.26](https://github.com/midwayjs/midway-faas/compare/v0.2.25...v0.2.26) (2020-02-19)
 
 

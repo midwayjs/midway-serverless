@@ -1,13 +1,13 @@
 {
   "name": "@midwayjs/simple-lock",
-  "version": "0.2.6",
+  "version": "0.2.27",
   "main": "dist/index",
   "typings": "dist/index.d.ts",
   "files": [
     "dist"
   ],
   "devDependencies": {
-    "midway-bin": "1"
+    "midway-bin": "beta"
   },
   "repository": {
     "type": "git",

@@ -71,6 +71,9 @@ export class PackagePlugin extends BasePlugin {
           usage:
             'Shared directory relative path, default is undefined，package command will copy content to build directory root',
         },
+        sharedTargetDir: {
+          usage: 'Where the shared directory will be copied, default is static',
+        },
         skipZip: {
           usage: 'Skip zip artifact',
           shortcut: 'z',
@@ -225,13 +228,21 @@ export class PackagePlugin extends BasePlugin {
         dependencies: this.codeAnalyzeResult.usingDependenciesVersion.valid,
       });
     }
-    this.core.cli.log(' - Copy Shared Files to build directory...');
     if (this.options.sharedDir) {
-      this.options.sharedDir = this.transformToRelative(
+      this.options.sharedTargetDir = this.options.sharedTargetDir || 'static';
+      this.core.cli.log(
+        ` - Copy Shared Files to build directory(${this.options.sharedTargetDir})...`
+      );
+      this.options.sharedDir = this.transformToAbsolute(
         this.servicePath,
         this.options.sharedDir
       );
-      await copy(this.options.sharedDir, this.midwayBuildPath);
+      this.options.sharedTargetDir = this.transformToAbsolute(
+        this.midwayBuildPath,
+        this.options.sharedTargetDir
+      );
+      console.log(this.options.sharedTargetDir);
+      await copy(this.options.sharedDir, this.options.sharedTargetDir);
     }
     this.core.cli.log(` - File copy complete`);
   }
@@ -320,31 +331,17 @@ export class PackagePlugin extends BasePlugin {
       this.core.cli.log(' - Using tradition build mode');
       if (this.codeAnalyzeResult.integrationProject) {
         // 生成一个临时 tsconfig
-        const tempConfigFilePath = join(
-          this.servicePath,
-          'tsconfig_integration_faas.json'
-        );
-
-        await tsIntegrationProjectCompile(this.servicePath, {
-          sourceDir: this.options.sourceDir || 'src',
+        const tsConfig = await tsIntegrationProjectCompile(this.servicePath, {
           buildRoot: this.midwayBuildPath,
           tsCodeRoot: this.codeAnalyzeResult.tsCodeRoot,
           incremental: false,
           clean: true,
         });
-        // 把临时的 tsconfig 移动进去
-        await move(
-          tempConfigFilePath,
-          join(this.midwayBuildPath, 'tsconfig.json'),
-          {
-            overwrite: true,
-          }
-        );
+        writeJSON(join(this.midwayBuildPath, 'tsconfig.json'), tsConfig);
       } else {
         await tsCompile(this.servicePath, {
           clean: true,
           tsConfigName: 'tsconfig.json',
-          source: this.options.sourceDir || 'src',
         });
         // copy dist to artifact directory
         await move(
@@ -456,6 +453,15 @@ export class PackagePlugin extends BasePlugin {
     }
   }
 
+  private transformToAbsolute(baseDir, targetDir) {
+    if (targetDir) {
+      if (!isAbsolute(targetDir)) {
+        return join(baseDir, targetDir);
+      }
+      return targetDir;
+    }
+  }
+
   // 合并高密度部署
   assignAggregationToFunctions() {
     // 只在部署阶段生效
@@ -500,7 +506,7 @@ export class PackagePlugin extends BasePlugin {
       const deployOrigin = this.core.service.aggregation[aggregationName]
         .deployOrigin;
 
-      const allPaths = [];
+      const allAggred = [];
       let handlers = [];
       if (this.core.service.aggregation[aggregationName].functions) {
         handlers = this.core.service.aggregation[aggregationName].functions
@@ -520,7 +526,10 @@ export class PackagePlugin extends BasePlugin {
             if (!httpEvent || !httpEvent.http.path) {
               return;
             }
-            allPaths.push(httpEvent.http.path);
+            allAggred.push({
+              path: httpEvent.http.path,
+              method: httpEvent.http.method,
+            });
             if (!deployOrigin) {
               // 不把原有的函数进行部署
               this.core.cli.log(
@@ -536,6 +545,7 @@ export class PackagePlugin extends BasePlugin {
           .filter((func: any) => !!func);
       }
 
+      const allPaths = allAggred.map(aggre => aggre.path);
       let currentPath = commonPrefix(allPaths);
       currentPath = currentPath ? `${currentPath}/*` : '/*';
       this.core.cli.log(
@@ -549,6 +559,7 @@ export class PackagePlugin extends BasePlugin {
       }
       allAggregationPaths.push(currentPath);
       this.core.service.functions[aggregationFuncName]._handlers = handlers;
+      this.core.service.functions[aggregationFuncName]._allAggred = allAggred;
       this.core.service.functions[aggregationFuncName].events = [
         { http: { method: 'get', path: currentPath } },
       ];

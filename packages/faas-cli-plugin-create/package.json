@@ -1,15 +1,15 @@
 {
   "name": "@midwayjs/fcli-plugin-create",
-  "version": "0.2.22",
+  "version": "0.2.29",
   "main": "dist/index",
   "typings": "dist/index.d.ts",
   "dependencies": {
-    "@midwayjs/fcli-command-core": "^0.2.22",
+    "@midwayjs/fcli-command-core": "^0.2.29",
     "enquirer": "^2.3.4",
     "light-generator": "^1.3.2"
   },
   "devDependencies": {
-    "midway-bin": "1"
+    "midway-bin": "beta"
   },
   "files": [
     "src",
