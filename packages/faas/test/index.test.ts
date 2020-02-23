@@ -72,6 +72,40 @@ describe('test/index.test.ts', () => {
     });
   });
 
+  describe('use default handler and new handler', () => {
+    let mock;
+    before(async () => {
+      mock = await createServerlessMock({
+        baseDir: join(__dirname, './fixtures/base-app-handler2'),
+        typescript: true,
+      });
+    });
+
+    it('invoke default @fun handler', done => {
+      return mock
+        .handler('index.handler')
+        .invoke(
+          {
+            text: 'hello',
+          },
+          { text: 'a' }
+        )
+        .expect(/ahello/, done);
+    });
+
+    it('invoke new decorator handler', done => {
+      return mock
+        .handler('index.list')
+        .invoke(
+          {
+            text: 'hello',
+          },
+          { text: 'a' }
+        )
+        .expect(/ahello/, done);
+    });
+  });
+
   describe('change default route', () => {
     it('invoke handler by appoint function route', async () => {
       const mock = await createServerlessMock({
