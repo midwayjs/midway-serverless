@@ -61,7 +61,7 @@ export class InvokePlugin extends BasePlugin {
       debug: this.options.debug,
       data: this.options.data || '{}',
       handler: funcConf.handler,
-      clean: this.options.clean
+      clean: this.options.clean ? this.options.clean === 'true' : null
     };
     return invoke(options);
   }
