@@ -60,7 +60,8 @@ export class InvokePlugin extends BasePlugin {
       functionName,
       debug: this.options.debug,
       data: this.options.data || '{}',
-      handler: funcConf.handler
+      handler: funcConf.handler,
+      clean: this.options.clean
     };
     return invoke(options);
   }
