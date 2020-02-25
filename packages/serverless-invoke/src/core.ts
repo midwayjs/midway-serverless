@@ -5,10 +5,10 @@
   2. tsc编译用户代码到dist目录
   3. 开源版: 【创建runtime、创建trigger】封装为平台invoke包，提供getInvoke方法，会传入args与入口方法，返回invoke方法
 */
-import { FaaSStarterClass, cleanTarget } from './utils';
+import { FaaSStarterClass, cleanTarget, compareFileChange } from './utils';
 import { join, resolve, relative } from 'path';
 import { existsSync, move, writeFileSync, ensureFileSync } from 'fs-extra';
-import { loadSpec, compareFileChange } from '@midwayjs/fcli-command-core';
+import { loadSpec } from '@midwayjs/fcli-command-core';
 import { writeWrapper } from '@midwayjs/serverless-spec-builder';
 import { AnalyzeResult, Locator } from '@midwayjs/locate';
 import {

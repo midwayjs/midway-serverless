@@ -7,5 +7,4 @@ export * from './pluginManager';
 export * from './interface/commandHookCore';
 export * from './npm';
 export * from './utils/loadSpec';
-export * from './utils/compare';
 export * from './cli';
