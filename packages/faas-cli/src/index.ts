@@ -70,7 +70,11 @@ export class CLI extends BaseCLI {
 
   async checkProvider() {
     // ignore f -v / f -h / f create
-    if (!this.commands.length || this.argv.h || this.commands[0] === 'create') {
+    if (!this.commands.length || this.argv.h) {
+      return;
+    }
+    const skipCommands = ['create', 'test'];
+    if (skipCommands.indexOf(this.commands[0]) !== -1) {
       return;
     }
     if (!this.spec.provider) {
