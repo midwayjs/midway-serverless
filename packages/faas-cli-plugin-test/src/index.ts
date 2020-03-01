@@ -32,7 +32,6 @@ export class TestPlugin extends BasePlugin {
 
   hooks = {
     'test:test': async () => {
-      console.log('f', this.options.f);
       const servicePath = this.core.config.servicePath;
       let testFiles = [];
       if (this.options.f) {
