@@ -149,7 +149,6 @@ export class CommandHookCore implements ICommandHooksCore {
   private getCoreInstance(): ICoreInstance {
     const {
       provider,
-      log,
       service,
       config,
       extensions,
@@ -167,11 +166,12 @@ export class CommandHookCore implements ICommandHooksCore {
         Error: CoreError,
       },
       store: new Map(),
-      cli: log || console,
+      cli: this.getLog(),
       config: config || {},
       getProvider: this.getProvider.bind(this),
       invoke: this.invoke.bind(this),
       spawn: this.spawn.bind(this),
+      debug: this.debug.bind(this),
       processedInput: {
         options: {},
         commands: commands || [],
@@ -384,6 +384,10 @@ export class CommandHookCore implements ICommandHooksCore {
     }
   }
 
+  private getLog() {
+    return this.options.log || console;
+  }
+
   error<T>(type: string, info?: T) {
     const errObj: {
       info?: T;
@@ -397,5 +401,12 @@ export class CommandHookCore implements ICommandHooksCore {
       throw new Error(errObj.message);
     }
     process.exit(1);
+  }
+
+  debug(...args) {
+    if (!this.options.options.V && !this.options.options.verbose) {
+      return;
+    }
+    this.getLog().log('[Verbose] ', ...args);
   }
 }

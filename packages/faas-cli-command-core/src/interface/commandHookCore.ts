@@ -38,6 +38,7 @@ export interface ICoreInstance {
   invoke(commandsArray?: string[], allowEntryPoints?: boolean, options?: any);
   pluginManager: ICommandHooksCore;
   store: IStore<any>;
+  debug: any;
   service: {
     service?: {
       name: string;
