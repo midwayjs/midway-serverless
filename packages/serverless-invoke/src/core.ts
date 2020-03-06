@@ -45,7 +45,7 @@ export abstract class InvokeCore implements IInvoke {
     this.baseDir = this.options.baseDir;
     this.buildDir = resolve(this.baseDir, options.buildDir || 'dist');
     this.spec = loadSpec(this.baseDir);
-    this.specFile = getSpecFile(this.baseDir);
+    this.specFile = getSpecFile(this.baseDir).path;
   }
 
   protected async getStarter() {
