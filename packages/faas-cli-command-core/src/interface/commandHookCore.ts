@@ -25,6 +25,11 @@ export interface ICommandHooksCore {
   addPlugin(plugin: IPlugin): void;
 }
 
+interface IStore<T> {
+  [index: string]: T;
+  [index: number]: T;
+}
+
 export interface ICoreInstance {
   classes: any;
   cli: ILog | Console;
@@ -32,6 +37,7 @@ export interface ICoreInstance {
   getProvider(providerName: string): IProviderInstance;
   invoke(commandsArray?: string[], allowEntryPoints?: boolean, options?: any);
   pluginManager: ICommandHooksCore;
+  store: IStore<any>;
   service: {
     service?: {
       name: string;

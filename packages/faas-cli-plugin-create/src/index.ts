@@ -154,6 +154,7 @@ export class CreatePlugin extends BasePlugin {
         show: this.showPrompt,
       });
       const parameters = await this.prompt.run();
+      this.setStore('parameters', parameters);
       await this.readyGenerate();
       await generator.run(parameters);
     } else {

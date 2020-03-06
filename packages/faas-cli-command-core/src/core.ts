@@ -166,6 +166,7 @@ export class CommandHookCore implements ICommandHooksCore {
       classes: {
         Error: CoreError,
       },
+      store: new Map(),
       cli: log || console,
       config: config || {},
       getProvider: this.getProvider.bind(this),
