@@ -23,7 +23,6 @@ export const generator = async (options: IOptions) => {
     };
   }
   const group: string = yamlData.service.name;
-  const prefix: string = yamlData.service.fnPrefix ? `${yamlData.service.fnPrefix}-` : '';
 
   let infos = [];
   if (archivePaths && archivePaths.length) {
@@ -67,7 +66,7 @@ export const generator = async (options: IOptions) => {
             type: 'function',
             url: {
               group,
-              name: `${prefix}${name}`,
+              name,
               version: 'latest'
             }
           }
