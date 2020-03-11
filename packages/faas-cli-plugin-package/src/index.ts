@@ -136,6 +136,8 @@ export class PackagePlugin extends BasePlugin {
         this.options.sourceDir &&
         join(this.servicePath, this.options.sourceDir),
     });
+    this.setStore('codeAnalyzeResult', this.codeAnalyzeResult);
+    this.core.debug('codeAnalyzeResult', this.codeAnalyzeResult);
     this.core.cli.log(`Information`);
     this.core.cli.log(` - BaseDir: ${this.servicePath}`);
     this.core.cli.log(` - AnalyzeResult`);
