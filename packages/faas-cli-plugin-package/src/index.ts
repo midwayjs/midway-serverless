@@ -99,6 +99,7 @@ export class PackagePlugin extends BasePlugin {
     'package:installDep': this.installDep.bind(this),
     'package:package': this.package.bind(this),
     'before:package:finalize': this.finalize.bind(this),
+    'after:package:finalize': this.afterFinalize.bind(this),
     'package:tscompile': this.tsCompile.bind(this),
   };
 
@@ -606,6 +607,12 @@ export class PackagePlugin extends BasePlugin {
   finalize() {
     if (this.cacheSpec) {
       writeFileSync(this.cacheSpec.specFile.path, this.cacheSpec.specData);
+    }
+  }
+
+  afterFinalize() {
+    if (!this.options.skipExit) {
+      process.exit();
     }
   }
 }
