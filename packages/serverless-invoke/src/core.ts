@@ -101,7 +101,7 @@ export abstract class InvokeCore implements IInvoke {
     const buildLogPath = resolve(this.buildDir, '.faasTSBuildTime.log');
     if (existsSync(buildLogPath)) {
       const fileChanges = await compareFileChange(
-        [ this.specFile, `${relative(baseDir, this.codeAnalyzeResult.tsCodeRoot)}/**/*` ],
+        [ this.specFile, `${relative(baseDir, this.codeAnalyzeResult.tsCodeRoot) || '.'}/**/*` ],
         [ buildLogPath ],
         { cwd: baseDir }
       );
