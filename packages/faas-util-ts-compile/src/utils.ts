@@ -90,7 +90,17 @@ export const copyFiles = async (options: ICopyOptions) => {
     ),
     {
       cwd: sourceDir,
-      ignore: ['node_modules/**/**'].concat(exclude || []),
+      followSymbolicLinks: false,
+      ignore: [
+        '**/node_modules/**', // 模块依赖目录
+        '**/test/**', // 测试目录
+        '**/run/**', // egg 运行调试目录
+        '**/public/**', // 公共assets目录
+        '**/build/**', // 构建产物目录
+        '**/dist/**', // 构建产物目录
+        '**/.serverless/**', // faas 构建目录
+        '**/.faas_debug_tmp/**', // faas 调试临时目录
+      ].concat(exclude || []),
     }
   );
   await Promise.all(
