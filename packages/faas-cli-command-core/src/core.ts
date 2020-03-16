@@ -95,10 +95,13 @@ export class CommandHookCore implements ICommandHooksCore {
     allowEntryPoints?: boolean,
     options?: any
   ) {
-    if (commandsArray == null) {
-      commandsArray = this.options.commands;
+    if (!Array.isArray(commandsArray)) {
+      commandsArray = [].concat(commandsArray || []);
     }
-    commandsArray = [].concat(commandsArray);
+    const displayHelp = this.options.options.h || this.options.options.help;
+    if (!commandsArray.length && displayHelp) {
+      return this.displayHelp();
+    }
     const commandInfo = this.getCommand(commandsArray, allowEntryPoints);
     const lifecycleEvents = this.loadLifecycle(
       commandInfo.commandName,
@@ -114,7 +117,7 @@ export class CommandHookCore implements ICommandHooksCore {
     }
 
     // 展示帮助
-    if (this.options.options.h || this.options.options.help) {
+    if (displayHelp) {
       return this.displayHelp(commandsArray, commandInfo.usage);
     }
     for (const lifecycle of lifecycleEvents) {
@@ -147,13 +150,7 @@ export class CommandHookCore implements ICommandHooksCore {
 
   // 获取核心instance
   private getCoreInstance(): ICoreInstance {
-    const {
-      provider,
-      service,
-      config,
-      extensions,
-      commands,
-    } = this.options;
+    const { provider, service, config, extensions, commands } = this.options;
     const serviceData: any = Utils.deepMerge(service || {}, {
       provider: {
         name: provider,
@@ -378,9 +375,9 @@ export class CommandHookCore implements ICommandHooksCore {
     };
   }
 
-  private displayHelp(commandsArray, usage) {
+  private displayHelp(commandsArray?, usage?) {
     if (this.options.displayUsage) {
-      this.options.displayUsage(commandsArray, usage, this);
+      this.options.displayUsage(commandsArray || [], usage || {}, this);
     }
   }
 
