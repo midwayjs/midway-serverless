@@ -361,9 +361,11 @@ export class CommandHookCore implements ICommandHooksCore {
       const optionInfo = commandOptions[option];
       usage[option] = optionInfo;
       if (optionInfo.shortcut) {
-        this.options.options[option] = this.options.options[
-          optionInfo.shortcut
-        ];
+        if (this.options.options[optionInfo.shortcut]) {
+          this.options.options[option] = this.options.options[
+            optionInfo.shortcut
+          ];
+        }
       }
       this.coreInstance.processedInput.options[option] = this.options.options[
         option
