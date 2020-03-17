@@ -1,8 +1,8 @@
 export const commandLineUsage = options => {
   if (Array.isArray(options)) {
-    return options.map(commandLineUsage).join('\n\n\n');
+    return options.map(commandLineUsage).join('\n');
   }
-  const result = [];
+  const result = ['\n'];
   if (options.header) {
     result.push(options.header.replace(/^./, match => match.toUpperCase()));
 
