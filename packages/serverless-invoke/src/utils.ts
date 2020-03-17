@@ -154,7 +154,7 @@ export const wait = (waitKey, count?) => {
   count = count || 0;
   return new Promise(resolve => {
     if (count > 100) {
-      // after 10s continue
+      // after 30s continue
       return resolve();
     }
     if (!waitKeyMap[waitKey]) {
@@ -163,7 +163,7 @@ export const wait = (waitKey, count?) => {
     } else if (waitKeyMap[waitKey] === 'waiting') {
       setTimeout(() => {
         wait(waitKey, count + 1).then(resolve);
-      }, 100);
+      }, 300);
     } else {
       resolve();
     }
