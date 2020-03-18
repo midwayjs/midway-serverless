@@ -10,9 +10,17 @@ const baseApp = resolve(
 const func = () => {
   cp.execSync(`cd ${baseApp};${cli} invoke -f http --clean=false`);
 };
+const funcHelp = () => {
+  cp.execSync(`${cli} -h`);
+};
+const funcTest = () => {
+  cp.execSync(`${cli} test -f ${resolve(__dirname, './bc.test.ts')}`);
+};
 
 const contenders = {
   'faas-cli invoke': func,
+  'faas-cli help': funcHelp,
+  'faas-cli test': funcTest,
 };
 
 console.log('\nBenchmark:');
