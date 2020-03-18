@@ -39,7 +39,8 @@ export class TestPlugin extends BasePlugin {
         this.core.cli.log('Testing all *.test.js/ts...');
       }
       const options = this.options;
-      const { TestCommand, CovCommand } = require('midway-bin');
+      const TestCommand = require('midway-bin/lib/cmd/test');
+      const CovCommand = require('midway-bin/lib/cmd/cov');
       const co = require('co');
       const Command = options.cov ? CovCommand : TestCommand;
       const tester = new Command();
