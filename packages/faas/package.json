@@ -12,6 +12,9 @@
     "is-type-of": "^1.2.1",
     "midway-core": "^1.11.2"
   },
+  "engines": {
+    "node": ">= 10"
+  },
   "files": [
     "dist",
     "src"

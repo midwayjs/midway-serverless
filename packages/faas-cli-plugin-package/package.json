@@ -11,6 +11,9 @@
     "globby": "^10.0.1",
     "midway-bin": "1"
   },
+  "engines": {
+    "node": ">= 10"
+  },
   "files": [
     "src",
     "dist"

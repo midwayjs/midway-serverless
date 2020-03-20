@@ -9,6 +9,9 @@
   "devDependencies": {
     "midway-bin": "1"
   },
+  "engines": {
+    "node": ">= 10"
+  },
   "files": [
     "dist"
   ],
