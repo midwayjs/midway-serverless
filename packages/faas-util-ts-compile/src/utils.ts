@@ -123,14 +123,14 @@ export const copyFiles = async (options: ICopyOptions) => {
   );
 };
 
-interface InterTsConfigOptions {
+interface InnerTsConfigOptions {
   incremental: boolean;
   outDir: string;
   include: string[];
   exclude: string[];
 }
 
-export const interTsConfigMaker = (options: InterTsConfigOptions) => {
+export const innerTsConfigMaker = (options: InnerTsConfigOptions) => {
   return {
     compileOnSave: true,
     compilerOptions: {

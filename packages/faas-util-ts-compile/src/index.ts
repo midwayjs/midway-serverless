@@ -1,7 +1,7 @@
 import { join, relative, resolve } from 'path';
 import { readFileSync, existsSync } from 'fs-extra';
 export * from './utils';
-import { combineTsConfig, interTsConfigMaker } from './utils';
+import { combineTsConfig, innerTsConfigMaker } from './utils';
 
 export const tsIntegrationProjectCompile = async (
   baseDir,
@@ -17,7 +17,7 @@ export const tsIntegrationProjectCompile = async (
     tsConfig: options.tsConfig,
     clean: options.clean,
     incremental: options.incremental,
-    innerTsConfig: interTsConfigMaker({
+    innerTsConfig: innerTsConfigMaker({
       incremental: !!options.incremental,
       outDir: relative(baseDir, join(options.buildRoot, 'dist')),
       include: [`${relative(baseDir, options.tsCodeRoot)}/**/*`],
