@@ -5,6 +5,7 @@ import {
   tsIntegrationProjectCompile,
   compareFileChange,
   copyFiles,
+  CodeAny,
 } from '@midwayjs/faas-util-ts-compile';
 import { writeWrapper } from '@midwayjs/serverless-spec-builder';
 import { createRuntime } from '@midwayjs/runtime-mock';
@@ -34,6 +35,7 @@ export class FaaSInvokePlugin extends BasePlugin {
         'locator',            // 分析目录结构
         'copyFile',           // 拷贝文件
         'checkFileChange',    // 检查文件是否更新
+        'analysisCode',       // 代码分析
         'compile',            // ts 编译
         'entry',              // 生成执行入口
         'getInvoke',          // 获取runtime
@@ -65,6 +67,7 @@ export class FaaSInvokePlugin extends BasePlugin {
     'invoke:locator': this.locator.bind(this),
     'invoke:copyFile': this.copyFile.bind(this),
     'invoke:checkFileChange': this.checkFileChange.bind(this),
+    'invoke:analysisCode': this.analysisCode.bind(this),
     'invoke:compile': this.compile.bind(this),
     'invoke:entry': this.entry.bind(this),
     'invoke:getInvoke': this.getInvoke.bind(this),
@@ -120,7 +123,7 @@ export class FaaSInvokePlugin extends BasePlugin {
     }
     process.env.MIDWAY_TS_MODE = 'false';
     // 构建锁文件
-    const buildLockPath = this.buildLockPath = resolve(this.buildDir, '.faasTSBuildTime.log');
+    const buildLockPath = this.buildLockPath = resolve(this.buildDir, '.faasTSBuildInfo.log');
     // 如果当前存在构建任务，那么久进行等待
     if (!lockMap[buildLockPath]) {
       lockMap[buildLockPath] = BUILD_TYPE.BUILDING;
@@ -140,6 +143,9 @@ export class FaaSInvokePlugin extends BasePlugin {
         { cwd: this.baseDir }
       );
       if (!fileChanges || !fileChanges.length) {
+        if (!this.core.service.functions) {
+          this.core.service.functions = JSON.parse(readFileSync(buildLockPath).toString());
+        }
         lockMap[buildLockPath] = true;
         this.skipTsBuild = true;
         this.core.debug('Auto skip ts compile');
@@ -148,7 +154,21 @@ export class FaaSInvokePlugin extends BasePlugin {
     }
     lockMap[buildLockPath] = BUILD_TYPE.BUILDING;
     ensureFileSync(buildLockPath);
-    writeFileSync(buildLockPath, `ts build at ${Date.now()}`);
+    const functions = await this.analysisCode();
+    writeFileSync(buildLockPath, JSON.stringify(functions));
+  }
+
+  async analysisCode() {
+    if (this.core.service.functions) {
+      return this.core.service.functions;
+    }
+    const newSpec: any = await CodeAny({
+      spec: this.core.service,
+      baseDir: this.baseDir,
+      sourceDir: this.codeAnalyzeResult.tsCodeRoot
+    });
+    this.core.service.functions = newSpec.functions;
+    return newSpec.functions;
   }
 
   async compile() {
@@ -224,7 +244,7 @@ export class FaaSInvokePlugin extends BasePlugin {
       baseDir: this.baseDir,
       service: {
         layers: this.core.service.layers,
-        functions: { [this.options.f]: funcInfo },
+        functions: { [this.options.function]: funcInfo },
       },
       distDir: this.buildDir,
       starter: starterName,
@@ -345,7 +365,11 @@ export class FaaSInvokePlugin extends BasePlugin {
 
   getFunctionInfo() {
     const functionName = this.options.function;
-    return this.core.service.functions && this.core.service.functions[functionName];
+    const functionInfo = this.core.service.functions && this.core.service.functions[functionName];
+    if (!functionInfo) {
+      throw new Error(`Function: ${ functionName } not exists`);
+    }
+    return functionInfo;
   }
 
   getTrigger(triggerMap, args) {
