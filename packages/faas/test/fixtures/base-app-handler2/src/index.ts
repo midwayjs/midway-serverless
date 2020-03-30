@@ -2,7 +2,7 @@ import { Inject, Provide, Func } from '@midwayjs/decorator';
 import { FunctionHandler } from '../../../../src';
 
 @Provide()
-@Func('index.handler', {})
+@Func('index.handler')
 export class IndexService implements FunctionHandler {
   @Inject()
   ctx; // context
@@ -15,5 +15,10 @@ export class IndexService implements FunctionHandler {
   @Func('index.list', {})
   getList(event) {
     return event.text + this.ctx.text;
+  }
+
+  @Func({ path: '/' })
+  get(event) {
+    return 'hello';
   }
 }

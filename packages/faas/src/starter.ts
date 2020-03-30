@@ -225,7 +225,7 @@ export class FaaSStarter implements IFaaSStarter {
               // or @Func({ handler })
               opts.funHandler
             : // else use ClassName.mehtod as handler key
-              (funModule as () => {}).name + '.' + opts.key;
+            covertId(funModule.name, opts.key);
           this.funMappingStore.set(handlerName, {
             middleware: opts.middleware || [],
             mod: funModule,
@@ -279,4 +279,8 @@ export class FaaSStarter implements IFaaSStarter {
     }
     return mwArr;
   }
+}
+
+function covertId(cls, method) {
+  return cls.replace(/^[A-Z]/, (c) => c.toLowerCase()) + '.' + method;
 }
