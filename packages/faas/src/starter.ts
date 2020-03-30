@@ -109,6 +109,7 @@ export class FaaSStarter implements IFaaSStarter {
       mod: any;
       middleware: Array<IMiddleware<FaaSContext>>;
       method: string;
+      descriptor: any;
     } = this.funMappingStore.get(handlerMapping);
 
     return async (...args) => {
@@ -226,7 +227,7 @@ export class FaaSStarter implements IFaaSStarter {
             : // else use ClassName.mehtod as handler key
               (funModule as () => {}).name + '.' + opts.key;
           this.funMappingStore.set(handlerName, {
-            middleware: opts.middleware,
+            middleware: opts.middleware || [],
             mod: funModule,
             method: opts.key,
             descriptor: opts.descriptor
