@@ -4,7 +4,7 @@ import { resolve } from 'path';
 let ts;
 interface IOptions {
   baseDir: string;
-  sourceDir: string;
+  sourceDir: string | string[];
   spec?: any;
 }
 
@@ -45,11 +45,23 @@ class CodeAnalysis {
 
   // 获取所有ts代码文件
   async loadTs() {
+    const src = [];
+    let allIsTs = true;
+    if (this.options.sourceDir) {
+      [].concat(this.options.sourceDir).forEach(source => {
+        if (/\.ts/.test(source)) {
+          src.push(source);
+        } else {
+          allIsTs = false;
+          src.push(`${source}/**/*.ts`, `${source}/*.ts`);
+        }
+      });
+    }
+    if (allIsTs) {
+      return src;
+    }
     return globby(
-      [
-        `${this.options.sourceDir}/**/*.ts`,
-        `${this.options.sourceDir}/*.ts`
-      ],
+      src,
       {
         absolute: true,
         cwd: this.options.baseDir,

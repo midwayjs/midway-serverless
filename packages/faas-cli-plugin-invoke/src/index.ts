@@ -13,7 +13,7 @@ import { createRuntime } from '@midwayjs/runtime-mock';
 import * as FCTrigger from '@midwayjs/serverless-fc-trigger';
 import { resolve, relative, join } from 'path';
 import { FaaSStarterClass, cleanTarget } from './utils';
-import { ensureFileSync, existsSync, writeFileSync, move, remove, readFileSync } from 'fs-extra';
+import { ensureFileSync, existsSync, writeFileSync, move, remove, readFileSync, copy } from 'fs-extra';
 export * from './invoke';
 const lockMap = {};
 enum BUILD_TYPE {
@@ -23,11 +23,13 @@ enum BUILD_TYPE {
 export class FaaSInvokePlugin extends BasePlugin {
   baseDir: string;
   buildDir: string;
+  invokeFun: any;
   codeAnalyzeResult: AnalyzeResult;
-  private skipTsBuild: boolean;
-  private buildLockPath: string;
-  private entryInfo: any;
-  private invokeFun: any;
+  skipTsBuild: boolean;
+  buildLockPath: string;
+  entryInfo: any;
+  fileChanges: any;
+  defaultTmpFaaSOut = './node_modules/.faas_out';
   commands = {
     invoke: {
       usage: '',
@@ -122,6 +124,7 @@ export class FaaSInvokePlugin extends BasePlugin {
       this.skipTsBuild = true;
       return;
     }
+    this.skipTsBuild = false;
     process.env.MIDWAY_TS_MODE = 'false';
     // 构建锁文件
     const buildLockPath = this.buildLockPath = resolve(this.buildDir, '.faasTSBuildInfo.log');
@@ -133,17 +136,18 @@ export class FaaSInvokePlugin extends BasePlugin {
     }
 
     const specFile = getSpecFile(this.baseDir).path;
-
+    const relativeTsCodeRoot = relative(this.baseDir, this.codeAnalyzeResult.tsCodeRoot) || '.';
     if (existsSync(buildLockPath)) {
-      const fileChanges = await compareFileChange(
+      this.fileChanges = await compareFileChange(
         [
           specFile,
-          `${relative(this.baseDir, this.codeAnalyzeResult.tsCodeRoot) || '.'}/**/*`,
+          `${relativeTsCodeRoot}/**/*`,
+          `${this.defaultTmpFaaSOut}/src/**/*`, // 允许用户将ts代码生成到此文件夹
         ],
         [buildLockPath],
         { cwd: this.baseDir }
       );
-      if (!fileChanges || !fileChanges.length) {
+      if (!this.fileChanges || !this.fileChanges.length) {
         if (!this.core.service.functions) {
           this.core.service.functions = JSON.parse(readFileSync(buildLockPath).toString());
         }
@@ -153,24 +157,28 @@ export class FaaSInvokePlugin extends BasePlugin {
         this.core.debug('Auto skip ts compile');
         return;
       }
+    } else {
+      this.fileChanges = [relativeTsCodeRoot, './node_modules/.faas_out/src'];
     }
     lockMap[buildLockPath] = BUILD_TYPE.BUILDING;
     ensureFileSync(buildLockPath);
-    const functions = await this.analysisCode();
-    writeFileSync(buildLockPath, JSON.stringify(functions));
+    writeFileSync(buildLockPath, JSON.stringify(this.core.service.functions));
   }
 
   async analysisCode() {
+    if (this.skipTsBuild) {
+      return;
+    }
     if (this.core.service.functions) {
       return this.core.service.functions;
     }
     const newSpec: any = await CodeAny({
       spec: this.core.service,
       baseDir: this.baseDir,
-      sourceDir: this.codeAnalyzeResult.tsCodeRoot
+      sourceDir: this.fileChanges
     });
     this.core.service.functions = newSpec.functions;
-    return newSpec.functions;
+    writeFileSync(this.buildLockPath, JSON.stringify(newSpec.functions));
   }
 
   async compile() {
@@ -226,31 +234,49 @@ export class FaaSInvokePlugin extends BasePlugin {
     });
   }
 
-  async entry() {
-    let starterName;
-    const platform = this.getPlatform();
-    this.core.debug('Platform entry', platform);
-    if (platform === 'aliyun') {
-      starterName = require.resolve('@midwayjs/serverless-fc-starter');
-    } else if (platform === 'tencent') {
-      starterName = require.resolve('@midwayjs/serverless-scf-starter');
-    }
-    if (!starterName) {
-      return;
-    }
+  checkUserEntry() {
     const funcInfo = this.getFunctionInfo();
     const [handlerFileName, name] = funcInfo.handler.split('.');
     const fileName = resolve(this.buildDir, `${handlerFileName}.js`);
+    const userEntry = [
+      resolve(this.baseDir, `${handlerFileName}.js`),
+      resolve(this.baseDir, `${this.defaultTmpFaaSOut}/${handlerFileName}.js`),
+    ].find(existsSync);
+    return {
+      funcInfo,
+      name,
+      userEntry,
+      fileName
+    };
+  }
 
-    writeWrapper({
-      baseDir: this.baseDir,
-      service: {
-        layers: this.core.service.layers,
-        functions: { [this.options.function]: funcInfo },
-      },
-      distDir: this.buildDir,
-      starter: starterName,
-    });
+  async entry() {
+    const { funcInfo , name, fileName, userEntry } = this.checkUserEntry();
+    if (!userEntry) {
+      let starterName;
+      const platform = this.getPlatform();
+      this.core.debug('Platform entry', platform);
+      if (platform === 'aliyun') {
+        starterName = require.resolve('@midwayjs/serverless-fc-starter');
+      } else if (platform === 'tencent') {
+        starterName = require.resolve('@midwayjs/serverless-scf-starter');
+      }
+      if (!starterName) {
+        return;
+      }
+
+      writeWrapper({
+        baseDir: this.baseDir,
+        service: {
+          layers: this.core.service.layers,
+          functions: { [this.options.function]: funcInfo },
+        },
+        distDir: this.buildDir,
+        starter: starterName,
+      });
+    } else {
+      copy(userEntry, fileName);
+    }
     this.entryInfo = { fileName, handlerName: name };
     this.core.debug('EntryInfo', this.entryInfo);
   }
