@@ -126,11 +126,11 @@ export class FaaSInvokePlugin extends BasePlugin {
       this.setLock(lockKey, LOCK_TYPE.WAITING);
       // 分析目录结构
       const locator = new Locator(this.baseDir);
-      this.codeAnalyzeResult = await locator.run({
+      codeAnalyzeResult = await locator.run({
         tsCodeRoot: this.options.sourceDir,
         tsBuildRoot: this.buildDir,
       });
-      this.setLock(lockKey, LOCK_TYPE.COMPLETE);
+      this.setLock(lockKey, LOCK_TYPE.COMPLETE, codeAnalyzeResult);
     } else if (lockType === LOCK_TYPE.COMPLETE) {
       codeAnalyzeResult = lockData;
     } else if (lockType === LOCK_TYPE.WAITING) {
@@ -198,7 +198,10 @@ export class FaaSInvokePlugin extends BasePlugin {
         return;
       }
     } else {
-      this.fileChanges = [`${relativeTsCodeRoot}/**/*`, `${this.defaultTmpFaaSOut}/src/**/*`];
+      this.fileChanges = [
+        `${relativeTsCodeRoot}/**/*`,
+        `${this.defaultTmpFaaSOut}/src/**/*`,
+      ];
     }
     this.setLock(this.buildLockPath, LOCK_TYPE.WAITING);
     ensureFileSync(buildLockPath);
