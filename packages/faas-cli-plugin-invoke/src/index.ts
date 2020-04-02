@@ -1,23 +1,22 @@
 import { BasePlugin, getSpecFile } from '@midwayjs/fcli-command-core';
 import { AnalyzeResult, Locator } from '@midwayjs/locate';
 import {
-  tsCompile,
-  tsIntegrationProjectCompile,
   compareFileChange,
   copyFiles,
   CodeAny,
-  combineTsConfig
 } from '@midwayjs/faas-util-ts-compile';
+import { compileWithOptions } from '@midwayjs/mwcc';
 import { writeWrapper } from '@midwayjs/serverless-spec-builder';
 import { createRuntime } from '@midwayjs/runtime-mock';
 import * as FCTrigger from '@midwayjs/serverless-fc-trigger';
 import { resolve, relative, join } from 'path';
 import { FaaSStarterClass, cleanTarget } from './utils';
-import { ensureFileSync, existsSync, writeFileSync, move, remove, readFileSync, copy } from 'fs-extra';
+import { ensureFileSync, existsSync, writeFileSync, remove, readFileSync, copy } from 'fs-extra';
 export * from './invoke';
-const lockMap = {};
-enum BUILD_TYPE {
-  BUILDING = 1,
+const commonLock: any = {};
+enum LOCK_TYPE {
+  INITIAL,
+  WAITING,
   COMPLETE
 }
 export class FaaSInvokePlugin extends BasePlugin {
@@ -88,16 +87,56 @@ export class FaaSInvokePlugin extends BasePlugin {
     }
   }
 
+  getLock(lockKey) {
+    if (!commonLock[lockKey]) {
+      commonLock[lockKey] = { lockType: LOCK_TYPE.INITIAL, lockData: {}};
+    }
+    return commonLock[lockKey];
+  }
+
+  setLock(lockKey, status, data?) {
+    commonLock[lockKey].lockType = status;
+    commonLock[lockKey].lockData = data;
+  }
+
+  async waitForLock(lockKey, count?) {
+    count = count || 0;
+    return new Promise(resolve => {
+      if (count > 100) {
+        return resolve();
+      }
+      const { lockType, lockData } = this.getLock(lockKey);
+      if (lockType === LOCK_TYPE.WAITING) {
+        setTimeout(() => {
+          this.waitForLock(lockKey, count + 1).then(resolve);
+        }, 300);
+      } else {
+        resolve(lockData);
+      }
+    });
+  }
+
   async locator() {
     this.baseDir = this.core.config.servicePath;
     this.buildDir = resolve(this.baseDir, '.faas_debug_tmp');
-
-    // 分析目录结构
-    const locator = new Locator(this.baseDir);
-    this.codeAnalyzeResult = await locator.run({
-      tsCodeRoot: this.options.sourceDir,
-      tsBuildRoot: this.buildDir,
-    });
+    const lockKey = `codeAnalyzeResult:${this.baseDir}`;
+    const { lockType, lockData } = this.getLock(lockKey);
+    let codeAnalyzeResult: any;
+    if (lockType === LOCK_TYPE.INITIAL) {
+      this.setLock(lockKey, LOCK_TYPE.WAITING);
+      // 分析目录结构
+      const locator = new Locator(this.baseDir);
+      this.codeAnalyzeResult = await locator.run({
+        tsCodeRoot: this.options.sourceDir,
+        tsBuildRoot: this.buildDir,
+      });
+      this.setLock(lockKey, LOCK_TYPE.COMPLETE);
+    } else if (lockType === LOCK_TYPE.COMPLETE) {
+      codeAnalyzeResult = lockData;
+    } else if (lockType === LOCK_TYPE.WAITING) {
+      codeAnalyzeResult = await this.waitForLock(lockKey);
+    }
+    this.codeAnalyzeResult = codeAnalyzeResult;
   }
 
   async copyFile() {
@@ -128,11 +167,12 @@ export class FaaSInvokePlugin extends BasePlugin {
     process.env.MIDWAY_TS_MODE = 'false';
     // 构建锁文件
     const buildLockPath = this.buildLockPath = resolve(this.buildDir, '.faasTSBuildInfo.log');
+    const { lockType } = this.getLock(this.buildLockPath);
     // 如果当前存在构建任务，那么久进行等待
-    if (!lockMap[buildLockPath]) {
-      lockMap[buildLockPath] = BUILD_TYPE.BUILDING;
-    } else if (lockMap[buildLockPath] === BUILD_TYPE.BUILDING) {
-      await this.waitForTsBuild(buildLockPath);
+    if (lockType === LOCK_TYPE.INITIAL) {
+      this.setLock(this.buildLockPath, LOCK_TYPE.WAITING);
+    } else if (lockType === LOCK_TYPE.WAITING) {
+      await this.waitForLock(this.buildLockPath);
     }
 
     const specFile = getSpecFile(this.baseDir).path;
@@ -151,16 +191,16 @@ export class FaaSInvokePlugin extends BasePlugin {
         if (!this.core.service.functions) {
           this.core.service.functions = JSON.parse(readFileSync(buildLockPath).toString());
         }
-        lockMap[buildLockPath] = true;
+        this.setLock(this.buildLockPath, LOCK_TYPE.COMPLETE);
         this.skipTsBuild = true;
         this.setStore('skipTsBuild', true);
         this.core.debug('Auto skip ts compile');
         return;
       }
     } else {
-      this.fileChanges = [relativeTsCodeRoot, './node_modules/.faas_out/src'];
+      this.fileChanges = [`${relativeTsCodeRoot}/**/*`, `${this.defaultTmpFaaSOut}/src/**/*`];
     }
-    lockMap[buildLockPath] = BUILD_TYPE.BUILDING;
+    this.setLock(this.buildLockPath, LOCK_TYPE.WAITING);
     ensureFileSync(buildLockPath);
     writeFileSync(buildLockPath, JSON.stringify(this.core.service.functions));
   }
@@ -187,44 +227,18 @@ export class FaaSInvokePlugin extends BasePlugin {
     }
 
     this.core.debug('Compile', this.codeAnalyzeResult);
-    const opts = this.options.incremental ? { overwrite: true } : {};
     try {
-      if (this.codeAnalyzeResult.integrationProject) {
-        // 一体化调整目录
-        await tsIntegrationProjectCompile(this.baseDir, {
-          buildRoot: this.buildDir,
-          tsCodeRoot: this.codeAnalyzeResult.tsCodeRoot,
-          incremental: this.options.incremental,
-          tsConfig: combineTsConfig({
-            compilerOptions: {
-              sourceRoot: this.codeAnalyzeResult.tsCodeRoot, // for sourceMap
-            },
-          }, this.options.tsConfig),
-          clean: this.options.clean,
-        });
-      } else {
-        await tsCompile(this.baseDir, {
-          tsConfigName: 'tsconfig.json',
-          tsConfig: combineTsConfig({
-            compilerOptions: {
-              sourceRoot: resolve(this.baseDir, 'src'), // for sourceMap
-            },
-          }, this.options.tsConfig),
-          clean: this.options.clean,
-        });
-        const dest = join(this.buildDir, 'dist');
-        if (existsSync(dest)) {
-          await remove(dest);
-        }
-        await move(join(this.baseDir, 'dist'), dest, opts);
-      }
+      const dest = join(this.buildDir, 'dist');
+      await compileWithOptions(this.baseDir, dest, {
+        include: [].concat(this.fileChanges)
+      });
     } catch (e) {
       await remove(this.buildLockPath);
-      lockMap[this.buildLockPath] = 0;
+      this.setLock(this.buildLockPath, LOCK_TYPE.COMPLETE);
       this.core.debug('Typescript Build Error', e);
       throw new Error(`Typescript Build Error, Please Check Your FaaS Code!`);
     }
-    lockMap[this.buildLockPath] = BUILD_TYPE.COMPLETE;
+    this.setLock(this.buildLockPath, LOCK_TYPE.COMPLETE);
     // 针对多次调用清理缓存
     Object.keys(require.cache).forEach(path => {
       if (path.indexOf(this.buildDir) !== -1) {
@@ -433,22 +447,6 @@ export class FaaSInvokePlugin extends BasePlugin {
     });
     await starter.start();
     return starter;
-  }
-
-  waitForTsBuild(buildLogPath, count?) {
-    count = count || 0;
-    return new Promise(resolve => {
-      if (count > 100) {
-        return resolve();
-      }
-      if (lockMap[buildLogPath] === BUILD_TYPE.BUILDING) {
-        setTimeout(() => {
-          this.waitForTsBuild(buildLogPath, count + 1).then(resolve);
-        }, 300);
-      } else {
-        resolve();
-      }
-    });
   }
 }
 
