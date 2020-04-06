@@ -26,6 +26,18 @@ describe('/test/noyaml.test.ts', () => {
     });
     assert(result.body === 'hello world');
   });
+  it('invokeAfterGetFuncList', async () => {
+    const functionDir = join(__dirname, 'fixtures/noYaml');
+    await remove(join(functionDir, './.faas_debug_tmp'));
+    const result: any = await getFuncList({ functionDir });
+    assert(result.service && result.service.handler === 'service.handler' && result['service2-index'].events[0].http.path === '/api/test2');
+    const result2: any = await invoke({
+      functionDir,
+      functionName: 'service',
+      clean: false
+    });
+    assert(result2.body === 'hello world');
+  });
   it('doubleInvoke', async () => {
     const functionDir = join(__dirname, 'fixtures/noYaml');
     await remove(join(functionDir, './.faas_debug_tmp'));
