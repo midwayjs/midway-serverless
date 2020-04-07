@@ -4,7 +4,7 @@
   "main": "dist/index",
   "typings": "dist/index.d.ts",
   "dependencies": {
-    "@midwayjs/fcli-plugin-invoke": "^0.2.66"
+    "@midwayjs/fcli-plugin-invoke": "^0.2.68"
   },
   "devDependencies": {
     "@midwayjs/faas": "^0.2.65",
