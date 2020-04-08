@@ -23,7 +23,7 @@ import {
   copyFiles,
   CodeAny
 } from '@midwayjs/faas-util-ts-compile';
-import { compileWithOptions, compileInProject } from '@midwayjs/mwcc';
+import { compileInProject } from '@midwayjs/mwcc';
 import { exec } from 'child_process';
 import * as archiver from 'archiver';
 import { AnalyzeResult, Locator } from '@midwayjs/locate';
@@ -333,17 +333,16 @@ export class PackagePlugin extends BasePlugin {
       return;
     }
     this.core.cli.log(' - Using tradition build mode');
-    if (this.codeAnalyzeResult.integrationProject) {
-      await compileWithOptions(this.servicePath, join(this.midwayBuildPath, 'dist'), {
-        compilerOptions: { sourceRoot: '../src' },
-        include: [this.codeAnalyzeResult.tsCodeRoot]
-      });
-    } else {
-      await compileInProject(this.servicePath, join(this.midwayBuildPath, 'dist'), undefined, { compilerOptions: { sourceRoot: '../src' } });
-    }
+    await compileInProject(this.servicePath, join(this.midwayBuildPath, 'dist'), undefined, {
+      compilerOptions: {
+        sourceRoot: '../src',
+        rootDir: this.codeAnalyzeResult.tsCodeRoot
+      },
+      include: [this.codeAnalyzeResult.tsCodeRoot]
+    });
     const tmpOutDir = resolve(this.defaultTmpFaaSOut, 'src');
     if (existsSync(tmpOutDir)) {
-      await compileWithOptions(this.servicePath, join(this.midwayBuildPath, 'dist'), {
+      await compileInProject(this.servicePath, join(this.midwayBuildPath, 'dist'), undefined, {
         compilerOptions: { rootDir: tmpOutDir },
         include: [tmpOutDir]
       });
