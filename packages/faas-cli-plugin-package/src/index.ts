@@ -42,6 +42,7 @@ export class PackagePlugin extends BasePlugin {
   codeAnalyzeResult: AnalyzeResult;
   integrationDistTempDirectory = 'integration_dist'; // 一体化构建的临时目录
   zipCodeDefaultName = 'serverless.zip';
+  mwccHintConfig = {};
 
   commands = {
     package: {
@@ -333,7 +334,7 @@ export class PackagePlugin extends BasePlugin {
       return;
     }
     this.core.cli.log(' - Using tradition build mode');
-    await compileInProject(this.servicePath, join(this.midwayBuildPath, 'dist'), undefined, {
+    await compileInProject(this.servicePath, join(this.midwayBuildPath, 'dist'), this.mwccHintConfig, {
       compilerOptions: {
         sourceRoot: '../src',
         rootDir: this.codeAnalyzeResult.tsCodeRoot
@@ -342,7 +343,7 @@ export class PackagePlugin extends BasePlugin {
     });
     const tmpOutDir = resolve(this.defaultTmpFaaSOut, 'src');
     if (existsSync(tmpOutDir)) {
-      await compileInProject(this.servicePath, join(this.midwayBuildPath, 'dist'), undefined, {
+      await compileInProject(this.servicePath, join(this.midwayBuildPath, 'dist'), this.mwccHintConfig, {
         compilerOptions: { rootDir: tmpOutDir },
         include: [tmpOutDir]
       });
