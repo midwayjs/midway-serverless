@@ -23,14 +23,13 @@ import {
   copyFiles,
   CodeAny
 } from '@midwayjs/faas-util-ts-compile';
-import { compileWithOptions, compileInProject } from '@midwayjs/mwcc';
+import { compileInProject, MwccConfig } from '@midwayjs/mwcc';
 import { exec } from 'child_process';
 import * as archiver from 'archiver';
 import { AnalyzeResult, Locator } from '@midwayjs/locate';
 import { tmpdir } from 'os';
 
 export class PackagePlugin extends BasePlugin {
-  core: any;
   options: any;
   servicePath = this.core.config.servicePath;
   // 代表构建产物的路径，非 ts 构建路径
@@ -42,6 +41,7 @@ export class PackagePlugin extends BasePlugin {
   codeAnalyzeResult: AnalyzeResult;
   integrationDistTempDirectory = 'integration_dist'; // 一体化构建的临时目录
   zipCodeDefaultName = 'serverless.zip';
+  mwccHintConfig: MwccConfig = {};
 
   commands = {
     package: {
@@ -333,17 +333,16 @@ export class PackagePlugin extends BasePlugin {
       return;
     }
     this.core.cli.log(' - Using tradition build mode');
-    if (this.codeAnalyzeResult.integrationProject) {
-      await compileWithOptions(this.servicePath, join(this.midwayBuildPath, 'dist'), {
-        compilerOptions: { sourceRoot: '../src' },
-        include: [this.codeAnalyzeResult.tsCodeRoot]
-      });
-    } else {
-      await compileInProject(this.servicePath, join(this.midwayBuildPath, 'dist'), undefined, { compilerOptions: { sourceRoot: '../src' } });
-    }
+    await compileInProject(this.servicePath, join(this.midwayBuildPath, 'dist'), this.mwccHintConfig, {
+      compilerOptions: {
+        sourceRoot: '../src',
+        rootDir: this.codeAnalyzeResult.tsCodeRoot
+      },
+      include: [this.codeAnalyzeResult.tsCodeRoot]
+    });
     const tmpOutDir = resolve(this.defaultTmpFaaSOut, 'src');
     if (existsSync(tmpOutDir)) {
-      await compileWithOptions(this.servicePath, join(this.midwayBuildPath, 'dist'), {
+      await compileInProject(this.servicePath, join(this.midwayBuildPath, 'dist'), this.mwccHintConfig, {
         compilerOptions: { rootDir: tmpOutDir },
         include: [tmpOutDir]
       });

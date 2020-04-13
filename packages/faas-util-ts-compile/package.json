@@ -1,10 +1,10 @@
 {
   "name": "@midwayjs/faas-util-ts-compile",
-  "version": "0.2.67",
+  "version": "0.2.71",
   "main": "dist/index",
   "typings": "dist/index.d.ts",
   "dependencies": {
-    "@midwayjs/mwcc": "^0.1.9",
+    "@midwayjs/mwcc": "^0.2.2",
     "fs-extra": "^8.1.0",
     "globby": "^10.0.1",
     "midway-bin": "^2.0.0",
