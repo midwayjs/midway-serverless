@@ -53,7 +53,7 @@ export class FCRuntime extends ServerlessLightRuntime {
         return this.defaultInvokeHandler.apply(this, args);
       }
       return handler.apply(handler, args);
-    }).then(result => {
+    }).then((result) => {
       if (res.headersSent) {
         return;
       }
@@ -79,6 +79,12 @@ export class FCRuntime extends ServerlessLightRuntime {
           ctx.type = 'application/json';
         }
         ctx.body = JSON.stringify(data);
+      } else {
+        // 阿里云网关必须返回字符串
+        if (!ctx.type) {
+          ctx.type = 'text/plain';
+        }
+        ctx.body = data + '';
       }
 
       if (res.setHeader) {
@@ -109,6 +115,16 @@ export class FCRuntime extends ServerlessLightRuntime {
     if (event && event[FAAS_ARGS_KEY]) {
       args.push(event[FAAS_ARGS_KEY]);
     } else {
+      // 阿里云无触发器，入参是 buffer
+      if (Buffer.isBuffer(event)) {
+        event = event.toString('utf8');
+        try {
+          event = JSON.parse(event);
+        } catch (_err) {}
+        if (event && event.headers && event.headers['X-Ca-Api-Gateway']) {
+          return this.wrapperApiGwEventInvoke(handler, event, context);
+        }
+      }
       args.push(event);
     }
     // 其他事件场景
@@ -120,4 +136,55 @@ export class FCRuntime extends ServerlessLightRuntime {
   async beforeInvokeHandler(context) {}
 
   async afterInvokeHandler(err, result, context) {}
+
+  async wrapperApiGwEventInvoke(handler, req, context) {
+    const ctx: any = new Context({
+      ...req,
+      method: req.httpMethod,
+      query: req.queryParameters,
+    }, {}, context);
+    ctx.EventType = 'fc_apigw';
+    const args = [ctx];
+    return this.invokeHandlerWrapper(ctx, async () => {
+      if (!handler) {
+        return this.defaultInvokeHandler.apply(this, args);
+      }
+      return handler.apply(handler, args);
+    }).then((result) => {
+      if (result) {
+        ctx.body = result;
+      }
+      const data = ctx.body;
+      let encoded = false;
+      if (typeof data === 'string') {
+        if (!ctx.type) {
+          ctx.type = 'text/plain';
+        }
+        ctx.body = data;
+      } else if (Buffer.isBuffer(data)) {
+        encoded = true;
+        if (!ctx.type) {
+          ctx.type = 'application/octet-stream';
+        }
+        ctx.body = data.toString('base64');
+      } else if (typeof data === 'object') {
+        if (!ctx.type) {
+          ctx.type = 'application/json';
+        }
+        ctx.body = JSON.stringify(data);
+      } else {
+        // 阿里云网关必须返回字符串
+        if (!ctx.type) {
+          ctx.type = 'text/plain';
+        }
+        ctx.body = data + '';
+      }
+      return {
+        isBase64Encoded: encoded,
+        statusCode: ctx.status,
+        headers: ctx.res.headers,
+        body: ctx.body,
+      };
+    });
+  }
 }

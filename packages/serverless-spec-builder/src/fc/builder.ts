@@ -5,19 +5,15 @@ import {
   FCFunctionStructure,
   FCSpec,
   HTTPEventType,
+  FCProviderStructure,
 } from './interface';
 import { SpecBuilder } from '../builder';
-import {
-  ProviderStructure,
-  HTTPEvent,
-  ScheduleEvent,
-  LogEvent,
-  OSEvent,
-} from '../interface';
+import { HTTPEvent, ScheduleEvent, LogEvent, OSEvent } from '../interface';
+import { uppercaseObjectKey } from '../utils';
 
 export class FCSpecBuilder extends SpecBuilder {
   toJSON() {
-    const providerData: ProviderStructure = this.getProvider();
+    const providerData: FCProviderStructure = this.getProvider();
     const serviceData = this.getService();
     const functionsData: FCFunctionsStructure = this.getFunctions();
     const serviceName = serviceData.name;
@@ -31,6 +27,11 @@ export class FCSpecBuilder extends SpecBuilder {
           Properties: {
             Description: serviceData.description,
             Role: providerData.role,
+            InternetAccess: providerData.internetAccess,
+            VpcConfig: uppercaseObjectKey(providerData.vpcConfig),
+            Policies: uppercaseObjectKey(providerData.policies),
+            LogConfig: uppercaseObjectKey(providerData.logConfig),
+            NasConfig: uppercaseObjectKey(providerData.nasConfig),
           },
         },
       },
@@ -47,21 +48,22 @@ export class FCSpecBuilder extends SpecBuilder {
           Description: funSpec.description || '',
           Initializer:
             funSpec.initializer ||
-            handler
-              .split('.')
-              .slice(0, -1)
-              .join('.') + '.initializer',
+            handler.split('.').slice(0, -1).join('.') + '.initializer',
           Handler: handler,
-          Runtime: funSpec.runtime || providerData.runtime || 'nodejs8',
+          Runtime: funSpec.runtime || providerData.runtime || 'nodejs10',
           CodeUri: funSpec.codeUri || '.',
           Timeout: funSpec.timeout || providerData.timeout || 30,
           InitializationTimeout: funSpec.initTimeout || 3,
           MemorySize: funSpec.memorySize || providerData.memorySize || 512,
+          EnvironmentVariables: {
+            ...providerData.environment,
+            ...funSpec.environment,
+          },
         },
         Events: {},
       };
 
-      for (const event of funSpec['events']) {
+      for (const event of funSpec?.['events'] ?? []) {
         if (event['http']) {
           const evt = event['http'] as HTTPEvent;
           functionTemplate.Events['http-' + funName] = {
@@ -172,9 +174,11 @@ function convertMethods(methods: string | string[]): HTTPEventType[] {
     }
 
     methods = [methods];
+  } else {
+    return ['GET', 'PUT', 'POST', 'DELETE', 'HEAD'];
   }
 
-  return methods.map(method => {
+  return methods.map((method) => {
     return method.toUpperCase();
   }) as HTTPEventType[];
 }
