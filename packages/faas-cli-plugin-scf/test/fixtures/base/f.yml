@@ -9,8 +9,11 @@ functions:
     events:
       - http:
           method: get
+          path: /http
   index2:
     handler: index.handler2
     events:
-      - apigw: true
+      - apigw:
+          method: get
+          path: /apigw
       

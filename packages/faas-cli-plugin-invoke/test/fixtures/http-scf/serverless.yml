@@ -8,4 +8,5 @@ functions:
   http:
     handler: http.handler
     events:
-      - apigw: true
+      - apigw:
+          method: get
