@@ -10,6 +10,7 @@
     "@midwayjs/fcli-plugin-fc": "^0.2.75",
     "@midwayjs/fcli-plugin-invoke": "^0.2.75",
     "@midwayjs/fcli-plugin-package": "^0.2.75",
+    "@midwayjs/fcli-plugin-scf": "^0.2.74",
     "@midwayjs/fcli-plugin-test": "^0.2.75",
     "@midwayjs/serverless-spec-builder": "^0.2.75",
     "enquirer": "^2.3.4"
