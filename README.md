@@ -1,10 +1,10 @@
 ![](https://img.alicdn.com/tfs/TB1y4zbsEY1gK0jSZFMXXaWcVXa-10530-6280.png)
 
-<div style="text-align:center">
+<p align="center">
 
 [![npm version](https://img.shields.io/npm/v/@midwayjs/faas.svg?style=flat)](https://www.npmjs.com/package/@midwayjs/faas) [![GitHub license](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE) [![Node.js CI](https://img.shields.io/badge/Node.js%20CI-passing-brightgreen)](https://github.com/midwayjs/midway-faas/actions?query=workflow%3A%22Node.js+CI%22) [![Activity](https://img.shields.io/github/commit-activity/m/midwayjs/midway-faas)](https://github.com/midwayjs/midway-faas) [![Contributors](https://img.shields.io/github/contributors/midwayjs/midway-faas)](https://github.com/midwayjs/midway-faas/graphs/contributors)
 
-</div>
+</p>
 
 Midway FaaS 是用于构建云函数的 Serverless 框架。帮助您在云原生时代大幅降低维护成本，更专注于产品研发。
 
