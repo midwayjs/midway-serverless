@@ -151,4 +151,26 @@ describe('/test/fc.test.ts', () => {
       },
     });
   });
+
+  it('test transform mq event', () => {
+    const result = generateFunctionsSpec(
+      path.join(__dirname, './fixtures/fc/f-event-mq.yml')
+    );
+    const funResult = result['Resources']['serverless-hello-world']['index'];
+    assert(funResult['Type'] === 'Aliyun::Serverless::Function');
+    assert(funResult['Properties']['Handler'] === 'index.handler');
+    assert(funResult['Properties']['Runtime'] === 'nodejs10');
+
+    assert.deepStrictEqual(funResult['Events'], {
+      mq: {
+        Type: 'MNSTopic',
+        Properties: {
+          NotifyContentFormat: 'JSON',
+          NotifyStrategy: 'BACKOFF_RETRY',
+          Region: 'cn-shanghai',
+          TopicName: 'test-topic',
+        },
+      },
+    });
+  });
 });

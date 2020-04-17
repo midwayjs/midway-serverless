@@ -169,8 +169,8 @@ export interface FCMNSTopicEvent {
     TopicName: string;
     Region?: string;
     NotifyContentFormat?: 'STREAM' | 'JSON';
-    NotifyStrategy?: 'BACKOFF_RETRY' | 'EXPONENTIAL_DECAY_RETRY';
-    FilterTag: string;
+    NotifyStrategy?: string | 'BACKOFF_RETRY' | 'EXPONENTIAL_DECAY_RETRY';
+    FilterTag?: string;
     InvocationRole?: string;
     Qualifier?: string;
   };

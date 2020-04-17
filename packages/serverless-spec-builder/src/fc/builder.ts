@@ -8,7 +8,13 @@ import {
   FCProviderStructure,
 } from './interface';
 import { SpecBuilder } from '../builder';
-import { HTTPEvent, TimerEvent, LogEvent, OSEvent } from '../interface';
+import {
+  HTTPEvent,
+  TimerEvent,
+  LogEvent,
+  OSEvent,
+  MQEvent,
+} from '../interface';
 import { uppercaseObjectKey, safeAttachPropertyValue } from '../utils';
 
 export class FCSpecBuilder extends SpecBuilder {
@@ -146,6 +152,23 @@ export class FCSpecBuilder extends SpecBuilder {
             },
           };
           const properties = functionTemplate.Events['oss']['Properties'];
+          safeAttachPropertyValue(properties, 'InvocationRole', evt.role);
+          safeAttachPropertyValue(properties, 'Qualifier', evt.version);
+        }
+
+        if (event['mq']) {
+          const evt = event['mq'] as MQEvent;
+          functionTemplate.Events['mq'] = {
+            Type: 'MNSTopic',
+            Properties: {
+              TopicName: evt.topic,
+              NotifyContentFormat: 'JSON',
+              NotifyStrategy: evt.strategy || 'BACKOFF_RETRY',
+            },
+          };
+          const properties = functionTemplate.Events['mq']['Properties'];
+          safeAttachPropertyValue(properties, 'Region', evt.region);
+          safeAttachPropertyValue(properties, 'FilterTag', evt.tags);
           safeAttachPropertyValue(properties, 'InvocationRole', evt.role);
           safeAttachPropertyValue(properties, 'Qualifier', evt.version);
         }

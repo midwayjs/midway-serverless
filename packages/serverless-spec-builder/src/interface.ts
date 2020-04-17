@@ -18,7 +18,7 @@ export interface FunctionsStructure {
   [functionName: string]: FunctionStructure;
 }
 
-export type EventTypeKey = 'http' | 'timer' | 'os' | 'log' | 'apigw';
+export type EventTypeKey = 'http' | 'timer' | 'os' | 'log' | 'apigw' | 'mq';
 
 export type EventType =
   | HTTPEvent
@@ -68,6 +68,15 @@ export interface OSEvent {
     suffix: string;
   };
   enable?: boolean;
+  role?: string;
+  version?: string;
+}
+
+export interface MQEvent {
+  topic: string;
+  tags?: string;
+  region?: string;
+  strategy?: string;
   role?: string;
   version?: string;
 }
