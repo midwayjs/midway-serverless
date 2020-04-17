@@ -12,6 +12,7 @@ describe('/test/fc.test.ts', () => {
     assert(funResult['Properties']['Initializer'] === 'index.initializer');
     assert(funResult['Properties']['Handler'] === 'index.handler');
     assert(funResult['Properties']['Runtime'] === 'nodejs10');
+    assert(funResult['Properties']['InstanceConcurrency'] === 2);
     assert.deepStrictEqual(funResult['Events'], {});
   });
 
@@ -47,6 +48,25 @@ describe('/test/fc.test.ts', () => {
         Properties: {
           AuthType: 'ANONYMOUS',
           Methods: ['GET'],
+        },
+        Type: 'HTTP',
+      },
+    });
+
+    // second function
+    const funResult2 = result['Resources']['serverless-hello-world']['index2'];
+    assert(funResult2['Type'] === 'Aliyun::Serverless::Function');
+    assert(funResult2['Properties']['Initializer'] === 'index.initializer');
+    assert(funResult2['Properties']['Handler'] === 'index.handler');
+    assert(funResult2['Properties']['Runtime'] === 'nodejs10');
+
+    assert.deepStrictEqual(funResult2['Events'], {
+      'http-index2': {
+        Properties: {
+          AuthType: 'ANONYMOUS',
+          Methods: ['POST'],
+          InvocationRole: 'acs:ram::1234567890:role/fc-invoke-test',
+          Qualifier: 'LATEST',
         },
         Type: 'HTTP',
       },

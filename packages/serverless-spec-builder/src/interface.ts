@@ -34,6 +34,8 @@ export interface EventStructureType {
 export interface HTTPEvent {
   path?: string;
   method?: string | string[];
+  role?: string;
+  version?: string;
 }
 
 // 定时任务
@@ -41,6 +43,8 @@ export interface TimerEvent {
   type: 'cron' | 'every' | 'interval';
   value: string;
   payload?: string;
+  version?: string;
+  enable?: boolean;
 }
 
 // 日志
@@ -83,6 +87,7 @@ export interface FunctionStructure {
     [key: string]: string;
   };
   events?: EventStructureType[];
+  concurrency?: number;
 }
 
 export interface LayersStructure {

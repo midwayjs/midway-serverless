@@ -9,7 +9,7 @@ import {
 } from './interface';
 import { SpecBuilder } from '../builder';
 import { HTTPEvent, TimerEvent, LogEvent, OSEvent } from '../interface';
-import { uppercaseObjectKey } from '../utils';
+import { uppercaseObjectKey, safeAttachPropertyValue } from '../utils';
 
 export class FCSpecBuilder extends SpecBuilder {
   toJSON() {
@@ -59,6 +59,7 @@ export class FCSpecBuilder extends SpecBuilder {
             ...providerData.environment,
             ...funSpec.environment,
           },
+          InstanceConcurrency: funSpec.concurrency || 1,
         },
         Events: {},
       };
@@ -73,6 +74,10 @@ export class FCSpecBuilder extends SpecBuilder {
               Methods: convertMethods(evt.method),
             },
           };
+          const properties =
+            functionTemplate.Events['http-' + funName]['Properties'];
+          safeAttachPropertyValue(properties, 'InvocationRole', evt.role);
+          safeAttachPropertyValue(properties, 'Qualifier', evt.version);
 
           httpEventRouters[evt.path] = {
             serviceName,
@@ -91,6 +96,9 @@ export class FCSpecBuilder extends SpecBuilder {
               Payload: evt.payload,
             },
           };
+          const properties = functionTemplate.Events['timer']['Properties'];
+          // safeAttachPropertyValue(properties, 'InvocationRole', evt.role);
+          safeAttachPropertyValue(properties, 'Qualifier', evt.version);
         }
 
         if (event['log']) {
@@ -114,6 +122,9 @@ export class FCSpecBuilder extends SpecBuilder {
               Qualifier: evt.version,
             },
           };
+          const properties = functionTemplate.Events['log']['Properties'];
+          safeAttachPropertyValue(properties, 'InvocationRole', evt.role);
+          safeAttachPropertyValue(properties, 'Qualifier', evt.version);
         }
 
         const osEvent = event['os'] || event['oss'] || event['cos'];
@@ -134,15 +145,9 @@ export class FCSpecBuilder extends SpecBuilder {
               Enable: true,
             },
           };
-
-          if (evt.role) {
-            functionTemplate.Events['oss']['Properties']['InvocationRole'] =
-              evt.role;
-          }
-          if (evt.version) {
-            functionTemplate.Events['oss']['Properties']['Qualifier'] =
-              evt.version;
-          }
+          const properties = functionTemplate.Events['oss']['Properties'];
+          safeAttachPropertyValue(properties, 'InvocationRole', evt.role);
+          safeAttachPropertyValue(properties, 'Qualifier', evt.version);
         }
       }
 

@@ -7,6 +7,7 @@ provider:
 functions:
   index:
     handler: index.handler
+    concurrency: 2
 
 package:
   artifact: code.zip
