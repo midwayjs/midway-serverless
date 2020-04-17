@@ -173,4 +173,26 @@ describe('/test/fc.test.ts', () => {
       },
     });
   });
+
+  it('test transform timer event', () => {
+    const result = generateFunctionsSpec(
+      path.join(__dirname, './fixtures/fc/f-event-timer.yml')
+    );
+    const funResult = result['Resources']['serverless-hello-world']['index'];
+    assert(funResult['Type'] === 'Aliyun::Serverless::Function');
+    assert(funResult['Properties']['Handler'] === 'index.handler');
+    assert(funResult['Properties']['Runtime'] === 'nodejs10');
+
+    assert.deepStrictEqual(funResult['Events'], {
+      timer: {
+        Type: 'Timer',
+        Properties: {
+          CronExpression: '@every 1m',
+          Enable: false,
+          Payload: 'awesome-fc',
+          Qualifier: 'LATEST',
+        },
+      },
+    });
+  });
 });

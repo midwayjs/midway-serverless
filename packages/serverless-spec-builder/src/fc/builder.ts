@@ -93,12 +93,13 @@ export class FCSpecBuilder extends SpecBuilder {
 
         if (event['timer']) {
           const evt = event['timer'] as TimerEvent;
+
           functionTemplate.Events['timer'] = {
             Type: 'Timer',
             Properties: {
               CronExpression:
                 evt.type === 'every' ? `@every ${evt.value}` : evt.value,
-              Enable: true,
+              Enable: evt.enable === false ? false : true,
               Payload: evt.payload,
             },
           };
