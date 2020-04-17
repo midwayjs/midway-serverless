@@ -97,7 +97,9 @@ export interface FCFunctionSpec {
       | FCTimerEvent
       | FCOSSEvent
       | FCLOGEvent
-      | FCMNSTopicEvent;
+      | FCMNSTopicEvent
+      | FCRDSEvent
+      | FCTableStoreEvent;
   };
 }
 
@@ -169,6 +171,29 @@ export interface FCMNSTopicEvent {
     NotifyContentFormat?: 'STREAM' | 'JSON';
     NotifyStrategy?: 'BACKOFF_RETRY' | 'EXPONENTIAL_DECAY_RETRY';
     FilterTag: string;
+    InvocationRole?: string;
+    Qualifier?: string;
+  };
+}
+
+export interface FCRDSEvent {
+  Type: 'RDS';
+  Properties: {
+    InstanceId: string;
+    SubscriptionObjects: string[];
+    Retry?: string;
+    Concurrency?: string;
+    EventFormat?: 'json' | 'protobuf';
+    InvocationRole?: string;
+    Qualifier?: string;
+  };
+}
+
+export interface FCTableStoreEvent {
+  Type: 'TableStore';
+  Properties: {
+    InstanceName: string;
+    TableName: string;
     InvocationRole?: string;
     Qualifier?: string;
   };
