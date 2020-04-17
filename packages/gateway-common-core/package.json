@@ -1,5 +1,5 @@
 {
-  "name": "@midwayjs/gateway-core",
+  "name": "@midwayjs/gateway-common-core",
   "version": "0.2.76",
   "main": "dist/index",
   "typings": "dist/index.d.ts",

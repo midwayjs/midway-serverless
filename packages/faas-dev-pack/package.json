@@ -5,9 +5,8 @@
   "typings": "dist/index.d.ts",
   "dependencies": {
     "@midwayjs/serverless-invoke": "^0.2.76",
-    "@midwayjs/gateway-core": "^0.2.76",
-    "@midwayjs/serverless-spec-builder": "^0.2.76",
-    "@midwayjs/gateway-http": "^0.2.76",
+    "@midwayjs/gateway-common-core": "^0.2.76",
+    "@midwayjs/gateway-common-http": "^0.2.76",
     "body-parser": "^1.19.0",
     "compose-middleware": "^5.0.1",
     "koa-bodyparser": "^4.2.1",
