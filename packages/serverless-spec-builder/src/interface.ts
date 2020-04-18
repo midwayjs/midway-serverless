@@ -88,7 +88,7 @@ export interface MQEvent {
 }
 
 // API 网关
-export interface APIGatewayEvent {}
+export interface APIGatewayEvent extends HTTPEvent {}
 
 export interface FunctionStructure {
   handler: string;

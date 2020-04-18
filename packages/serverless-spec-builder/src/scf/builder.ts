@@ -17,7 +17,23 @@ import {
   SCFCOSEvent,
   SCFCMQEvent,
 } from './interface';
-import { safeAttachPropertyValue } from '../utils';
+import { removeObjectEmptyAttributes } from '../utils';
+
+export const nodejsVersion = {
+  nodejs6: 'Node.js6.10',
+  nodejs8: 'Nodejs8.9',
+  nodejs10: 'Node.js10.15',
+};
+
+function getNodejsRuntime(runtime) {
+  if (nodejsVersion[runtime]) {
+    return nodejsVersion[runtime];
+  }
+  if (runtime) {
+    return runtime;
+  }
+  return 'Nodejs10.15';
+}
 
 export class SCFServerlessSpecBuilder extends SpecBuilder {
   toJSON() {
@@ -30,7 +46,7 @@ export class SCFServerlessSpecBuilder extends SpecBuilder {
       service: serviceName,
       provider: {
         name: 'tencent',
-        runtime: providerData.runtime || 'Nodejs10.15',
+        runtime: getNodejsRuntime(providerData.runtime),
         region: providerData.region,
         credentials: (providerData as any).credentials,
         stage: providerData.stage,
@@ -41,8 +57,8 @@ export class SCFServerlessSpecBuilder extends SpecBuilder {
         },
         timeout: providerData.timeout || 3,
       },
-      plugins: ['serverless-tencent-scf'],
       functions: {},
+      plugins: this.getPlugins(),
     };
 
     for (const funName in functionsData) {
@@ -55,51 +71,28 @@ export class SCFServerlessSpecBuilder extends SpecBuilder {
         timeout: funSpec.timeout || serverless.provider.timeout,
         memorySize: funSpec.memorySize || serverless.provider.memorySize,
         environment: {
-          variables: funSpec.environment || {},
+          variables: {
+            ...funSpec.environment,
+          },
         },
         events: [],
       };
 
-      for (const event of funSpec['events']) {
+      for (const event of funSpec['events'] ?? []) {
         if (event['http'] || event['apigw']) {
           const evt = (event['http'] || event['apigw']) as HTTPEvent;
           const apiGateway: SCFAPIGatewayEvent = {
-            name: `${funName}_${providerData.stage || ''}_apigw`,
+            name: `${funName}_apigw_${providerData.stage || 'dev'}`,
             parameters: {
               httpMethod: convertMethods(evt.method),
               path: evt.path,
+              serviceTimeout: funSpec.timeout || evt.timeout,
+              stageName: funSpec.stage || providerData.stage,
+              serviceId: evt.serviceId || providerData.serviceId,
+              integratedResponse: evt.integratedResponse,
+              enableCORS: evt.cors,
             },
           };
-
-          safeAttachPropertyValue(
-            apiGateway.parameters,
-            'serviceTimeout',
-            funSpec.timeout || evt.timeout
-          );
-
-          safeAttachPropertyValue(
-            apiGateway.parameters,
-            'stageName',
-            funSpec.stage || providerData.stage
-          );
-
-          safeAttachPropertyValue(
-            apiGateway.parameters,
-            'serviceId',
-            evt.serviceId || providerData.serviceId
-          );
-
-          safeAttachPropertyValue(
-            apiGateway.parameters,
-            'integratedResponse',
-            evt.integratedResponse
-          );
-
-          safeAttachPropertyValue(
-            apiGateway.parameters,
-            'enableCORS',
-            evt.cors
-          );
 
           functionTemplate.events.push({
             apigw: apiGateway,
@@ -156,7 +149,7 @@ export class SCFServerlessSpecBuilder extends SpecBuilder {
       serverless.functions[funName] = functionTemplate;
     }
 
-    return serverless;
+    return removeObjectEmptyAttributes(serverless);
   }
 }
 

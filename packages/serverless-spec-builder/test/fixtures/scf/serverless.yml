@@ -65,6 +65,9 @@ functions:
           value: '*/5 * * * *'
           payload: 'test'
 
+plugins:
+  - serverless-plugin-scf
+
 layers:
   test:
     path: npm:@midwayjs/egg-layer@latest
