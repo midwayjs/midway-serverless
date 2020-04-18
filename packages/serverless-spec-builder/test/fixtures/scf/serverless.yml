@@ -60,7 +60,7 @@ functions:
           method:
             - GET
             - POST
-      - schedule:
+      - timer:
           type: 'cron'
           value: '*/5 * * * *'
           payload: 'test'
