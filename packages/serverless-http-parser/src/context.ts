@@ -2,22 +2,22 @@ import { Request } from './request';
 import { Response } from './response';
 import * as Cookies from 'cookies';
 
+const COOKIES = Symbol('context#cookies');
+
 export class Context {
-  req;
-  request;
-  res;
-  response;
+  req: Request;
+  request: Request;
+  res: Response;
+  response: Response;
   statusCode;
   requestId;
   credentials;
   function;
   originContext: null;
-  cookies;
 
   constructor(event, context) {
     this.req = this.request = new Request(event);
     this.res = this.response = new Response();
-    this.cookies = new Cookies(this.req, this.res);
     this.requestId = context.requestId;
     this.credentials = context.credentials;
     this.function = context.function;
@@ -132,6 +132,28 @@ export class Context {
 
   is(type, ...types) {
     return this.request.is(type, ...types);
+  }
+
+  get cookies() {
+    if (!this[COOKIES]) {
+      const resProxy = new Proxy(this.res, {
+        get(obj, prop) {
+          // 这里屏蔽 set 方法，是因为 cookies 模块中根据这个方法获取 setHeader 方法
+          if (prop !== 'set') {
+            return obj[prop];
+          }
+        }
+      });
+      this[ COOKIES ] = new Cookies(this.req as any,  resProxy as any, {
+        keys: undefined,
+        secure: false
+      });
+    }
+    return this[COOKIES];
+  }
+
+  set cookies(_cookies) {
+    this[COOKIES] = _cookies;
   }
 
 }
