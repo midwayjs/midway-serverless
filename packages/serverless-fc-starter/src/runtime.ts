@@ -132,7 +132,12 @@ export class FCRuntime extends ServerlessLightRuntime {
           event = JSON.parse(event);
         } catch (_err) {}
       }
-      if (event && event.headers && event.headers['X-Ca-Timestamp']) {
+      if (
+        event &&
+        event.headers &&
+        'queryParameters' in event &&
+        'httpMethod' in event
+      ) {
         return this.wrapperWebInvoker(handler, event, {}, context);
       }
       args.push(event);
