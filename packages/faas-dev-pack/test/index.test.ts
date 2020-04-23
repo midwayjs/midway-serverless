@@ -60,13 +60,10 @@ describe('/test/index.test.ts', () => {
         action: 'doTest',
       })
       .send({ name: 'zhangting' })
-      // .expect('Content-type', 'text/html; charset=utf-8')
-      // .expect(/zhangting,hello http world,doTest/)
-      // .expect('x-schema', 'bbb')
-      .expect(200, (err ,res) => {
-        console.log(res);
-        done();
-      });
+      .expect('Content-type', 'text/html; charset=utf-8')
+      .expect(/zhangting,hello http world,doTest/)
+      .expect('x-schema', 'bbb')
+      .expect(200, done);
   });
 
   it('should invoke by http api parallel', (done) => {
