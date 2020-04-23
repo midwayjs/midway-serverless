@@ -4,6 +4,7 @@ import {
   ServerlessLightRuntime,
 } from '@midwayjs/runtime-engine';
 import { Context } from './context';
+import * as util from 'util';
 
 export class FCRuntime extends ServerlessLightRuntime {
   /**
@@ -28,7 +29,8 @@ export class FCRuntime extends ServerlessLightRuntime {
   async wrapperWebInvoker(handler, req, res, context) {
     let ctx: any;
     // for web
-    const isHTTPMode = req.constructor.name === 'EventEmitter';
+    const isHTTPMode =
+      req.constructor.name === 'EventEmitter' || util.types.isProxy(req); // for local test
     if (isHTTPMode) {
       // http
       const rawBody = await getRawBody(req);
@@ -60,7 +62,7 @@ export class FCRuntime extends ServerlessLightRuntime {
         return this.defaultInvokeHandler.apply(this, args);
       }
       return handler.apply(handler, args);
-    }).then(result => {
+    }).then((result) => {
       if (res.headersSent) {
         return;
       }
