@@ -63,11 +63,14 @@ export interface IGetFuncList {
   functionDir?: string; // 函数所在目录
   sourceDir?: string; // 一体化目录结构下，函数的目录，比如 src/apis，这个影响到编译
   verbose?: boolean; // 输出更多信息
+  [key: string]: any;
 }
 export async function getFuncList (options: IGetFuncList) {
   const invokeFun = getFunction({
     stopLifecycle: 'invoke:analysisCode',
     key: 'functions'
   });
+  options.clean = false;
+  options.incremental = true;
   return invokeFun(options);
 }
