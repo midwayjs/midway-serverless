@@ -64,7 +64,6 @@ export interface ICoreInstance {
     package?: any;
     aggregation?: {
       [aggregationName: string]: {
-        prefix?: string | boolean;
         deployOrigin?: boolean;
         functions: string[];
         functionsPattern?: string;

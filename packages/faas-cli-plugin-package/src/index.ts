@@ -512,10 +512,8 @@ export class PackagePlugin extends BasePlugin {
     const allAggregationPaths = [];
     let allFuncNames = Object.keys(this.core.service.functions);
     for (const aggregationName in this.core.service.aggregation) {
-      
       const aggregationConfig = this.core.service.aggregation[aggregationName];
-      const prefix = aggregationConfig.prefix  === false ? '' : (aggregationConfig.prefix || 'aggregation');
-      const aggregationFuncName = `${prefix}${aggregationName}`;
+      const aggregationFuncName = aggregationName;
       this.core.service.functions[
         aggregationFuncName
       ] = aggregationConfig;
