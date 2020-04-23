@@ -122,6 +122,7 @@ export interface ServiceStructure {
 
 export interface AggregationStructure {
   [aggregationName: string]: {
+    prefix?: string | boolean;
     deployOrigin?: boolean;
     functions?: string[];
     functionsPattern?: string[];

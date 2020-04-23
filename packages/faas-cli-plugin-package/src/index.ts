@@ -512,10 +512,13 @@ export class PackagePlugin extends BasePlugin {
     const allAggregationPaths = [];
     let allFuncNames = Object.keys(this.core.service.functions);
     for (const aggregationName in this.core.service.aggregation) {
-      const aggregationFuncName = `aggregation${aggregationName}`;
+      
+      const aggregationConfig = this.core.service.aggregation[aggregationName];
+      const prefix = aggregationConfig.prefix  === false ? '' : (aggregationConfig.prefix || 'aggregation');
+      const aggregationFuncName = `${prefix}${aggregationName}`;
       this.core.service.functions[
         aggregationFuncName
-      ] = this.core.service.aggregation[aggregationName];
+      ] = aggregationConfig;
       this.core.service.functions[
         aggregationFuncName
       ].handler = `${aggregationFuncName}.handler`;
@@ -524,12 +527,11 @@ export class PackagePlugin extends BasePlugin {
         this.core.service.functions[aggregationFuncName].events = [];
       }
       // 忽略原始方法，不再单独进行部署
-      const deployOrigin = this.core.service.aggregation[aggregationName]
-        .deployOrigin;
+      const deployOrigin = aggregationConfig.deployOrigin;
 
       const allAggred = [];
       let handlers = [];
-      const aggregationConfig = this.core.service.aggregation[aggregationName];
+      
       if (aggregationConfig.functions || aggregationConfig.functionsPattern) {
         const matchedFuncName = [];
         const notMatchedFuncName = [];
