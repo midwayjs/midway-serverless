@@ -95,16 +95,16 @@ export class FCRuntime extends ServerlessLightRuntime {
           }
           ctx.body = data + '';
         }
-      } else {
-        if (res.setHeader) {
-          for (const key in ctx.res.headers) {
-            res.setHeader(key, ctx.res.headers[key]);
-          }
-        }
+      }
 
-        if (res.setStatusCode) {
-          res.setStatusCode(ctx.status);
+      if (res.setHeader) {
+        for (const key in ctx.res.headers) {
+          res.setHeader(key, ctx.res.headers[key]);
         }
+      }
+
+      if (res.setStatusCode) {
+        res.setStatusCode(ctx.status);
       }
 
       if (res.send) {
