@@ -163,13 +163,13 @@ class Response {
 
   toJSON() {
     const headers = this.headers;
-    let base64Encoded = false;
+    let isBase64Encoded = false;
     let body;
     if (typeof this.body === 'string') {
       body = this.body;
     } else if (Buffer.isBuffer(this.body)) {
       body = this.body.toString('base64');
-      base64Encoded = true;
+      isBase64Encoded = true;
     } else {
       body = JSON.stringify(this.body);
     }
@@ -179,7 +179,7 @@ class Response {
       headers,
       statusCode: this.statusCode,
       body,
-      base64Encoded,
+      isBase64Encoded,
     };
   }
 }

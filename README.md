@@ -33,6 +33,12 @@ Midway FaaS is the Serverless framework used to build Node.js cloud functions. H
 
 - Guide [中文](https://www.yuque.com/midwayjs/faas) and [English](https://www.yuque.com/midwayjs/faas/quick_start?translate=en)
 
+
+## Community partners
+
+- [icejs](https://ice.work/)
+- [ykfe/ssr](https://github.com/ykfe/ssr/)
+
 ## License
 
 Midway FaaS is [MIT licensed](./LICENSE).

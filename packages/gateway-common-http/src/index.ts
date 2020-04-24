@@ -35,7 +35,7 @@ export class KoaGateway implements KoaGatewayAdapter {
           headers: object;
           statusCode: number;
           body: string;
-          base64Encoded: boolean;
+          isBase64Encoded: boolean;
         } = await invoke({
           functionDir: invokeOptions.functionDir,
           functionName: invokeOptions.functionName,
@@ -46,7 +46,7 @@ export class KoaGateway implements KoaGatewayAdapter {
         });
         let data;
         ctx.status = result.statusCode;
-        if (result.base64Encoded) {
+        if (result.isBase64Encoded) {
           // base64 to buffer
           data = new Buffer(result.body, 'base64');
         } else {
@@ -56,14 +56,15 @@ export class KoaGateway implements KoaGatewayAdapter {
             data = result.body;
           }
         }
-        ctx.body = data;
         for (const key in result.headers) {
           ctx.set(key, getHeaderValue(result.headers, key));
         }
+        ctx.body = data;
       } catch (err) {
         ctx.body = err.stack;
         ctx.status = 500;
       }
+      await next();
     }
   }
 }
@@ -101,11 +102,11 @@ export class ExpressGateway implements ExpressGatewayAdapter {
             headers: object;
             statusCode: number;
             body: string;
-            base64Encoded: boolean;
+            isBase64Encoded: boolean;
           }) => {
             let data;
             res.statusCode = result.statusCode;
-            if (result.base64Encoded) {
+            if (result.isBase64Encoded) {
               // base64 to buffer
               data = new Buffer(result.body, 'base64');
             } else {
