@@ -11,6 +11,7 @@ const initializeMethod = async (config = {}) => {
     layers: []
   });
   starter = new FaaSStarter({ config, baseDir: __dirname });
+  
   await starter.start();
   inited = true;
 };

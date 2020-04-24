@@ -89,7 +89,7 @@ export class SCFServerlessSpecBuilder extends SpecBuilder {
               serviceTimeout: funSpec.timeout || evt.timeout,
               stageName: funSpec.stage || providerData.stage,
               serviceId: evt.serviceId || providerData.serviceId,
-              integratedResponse: evt.integratedResponse,
+              integratedResponse: evt.integratedResponse || true,
               enableCORS: evt.cors,
             },
           };

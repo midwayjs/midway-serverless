@@ -76,7 +76,11 @@ describe('/test/scf.test.ts', () => {
               {
                 apigw: {
                   name: 'index_apigw_dev',
-                  parameters: { httpMethod: 'GET', path: '/foo' },
+                  parameters: {
+                    httpMethod: 'GET',
+                    integratedResponse: true,
+                    path: '/foo',
+                  },
                 },
               },
             ],
