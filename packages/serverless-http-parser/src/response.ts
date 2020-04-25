@@ -2,7 +2,7 @@ import * as getType from 'cache-content-type';
 import * as assert from 'assert';
 import * as statuses from 'statuses';
 import { is as typeis } from 'type-is';
-import { FaaSHTTPResponse } from '@midwayjs/cloud-function-definition';
+import { FaaSHTTPResponse } from '@midwayjs/faas-typings';
 
 export class Response implements FaaSHTTPResponse {
   statusCode;

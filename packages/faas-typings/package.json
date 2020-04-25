@@ -1,5 +1,5 @@
 {
-  "name": "@midwayjs/cloud-function-definition",
+  "name": "@midwayjs/faas-typings",
   "version": "0.2.76",
   "typings": "index.d.ts",
   "engines": {

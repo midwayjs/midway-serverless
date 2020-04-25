@@ -1,6 +1,6 @@
 import { MidwayRequestContainer } from '@midwayjs/core';
 import { KoaMiddleware } from '@midwayjs/decorator';
-import { FaaSHTTPContext } from '@midwayjs/cloud-function-definition';
+import { FaaSHTTPContext } from '@midwayjs/faas-typings';
 
 export type Middleware = KoaMiddleware<FaaSContext>;
 

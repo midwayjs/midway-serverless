@@ -102,12 +102,7 @@ export namespace SCF {
     /**
      * 记录实际请求的完整 Header 内容
      */
-    headers: {
-      'Accept-Language': string;
-      Accept: string;
-      Host: string;
-      'User-Agent': string;
-    };
+    headers: { [key: string]: string };
     /**
      * 记录实际请求的完整 Body 内容
      */
@@ -127,9 +122,7 @@ export namespace SCF {
     /**
      * 记录在 API 网关中配置过的 Header 参数以及实际取值
      */
-    headerParameters: {
-      Refer: string;
-    };
+    headerParameters: { [key: string]: string };
     stageVariables: {
       stage: string;
     };
@@ -140,10 +133,7 @@ export namespace SCF {
     /**
      * 请求地址的查询参数
      */
-    queryString: {
-      foo: string;
-      bob: string;
-    };
+    queryString: { [key: string]: string };
     httpMethod: string;
   }
 

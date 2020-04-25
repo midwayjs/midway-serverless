@@ -1,5 +1,5 @@
 import { BaseTrigger } from '@midwayjs/runtime-mock';
-import { SCF } from '@midwayjs/cloud-function-definition';
+import { SCF } from '@midwayjs/faas-typings';
 
 export class SCFBaseTrigger extends BaseTrigger {
   useCallback = true;

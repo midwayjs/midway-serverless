@@ -2,7 +2,7 @@ import { is as typeis } from 'type-is';
 import * as qs from 'querystring';
 import * as accepts from 'accepts';
 import { GatewayEvent } from './interface';
-import { FaaSHTTPRequest } from '@midwayjs/cloud-function-definition';
+import { FaaSHTTPRequest } from '@midwayjs/faas-typings';
 
 const EVENT = Symbol.for('ctx#event');
 const EVENT_PARSED = Symbol.for('ctx#event_parsed');

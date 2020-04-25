@@ -1,5 +1,5 @@
 import { SCFBaseTrigger } from './base';
-import { SCF } from '@midwayjs/cloud-function-definition';
+import { SCF } from '@midwayjs/faas-typings';
 
 /**
  * https://cloud.tencent.com/document/product/583/17530

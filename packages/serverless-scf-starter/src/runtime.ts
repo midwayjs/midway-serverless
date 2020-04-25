@@ -1,6 +1,6 @@
 import { ServerlessLightRuntime } from '@midwayjs/runtime-engine';
 import { Context } from '@midwayjs/serverless-http-parser';
-import { SCF } from '@midwayjs/cloud-function-definition';
+import { SCF } from '@midwayjs/faas-typings';
 
 export class SCFRuntime extends ServerlessLightRuntime {
   /**

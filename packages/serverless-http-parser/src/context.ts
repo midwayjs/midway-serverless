@@ -6,7 +6,7 @@ import {
   FaaSHTTPRequest,
   FaaSHTTPResponse,
   FaaSOriginContext,
-} from '@midwayjs/cloud-function-definition';
+} from '@midwayjs/faas-typings';
 
 const COOKIES = Symbol('context#cookies');
 
