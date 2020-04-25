@@ -23,5 +23,5 @@
     "type": "git",
     "url": "git@github.com:midwayjs/midway-faas.git"
   },
-  "license": "MIT",
+  "license": "MIT"
 }
