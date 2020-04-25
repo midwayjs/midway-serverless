@@ -282,6 +282,25 @@ export interface FaaSHTTPResponse extends ContextDelegatedResponse {
   // is(): string;
   is(...types: string[]): string;
   is(types: string[]): string;
+  /**
+   * Return response header. If the header is not set, will return an empty
+   * string.
+   *
+   * The `Referrer` header field is special-cased, both `Referrer` and
+   * `Referer` are interchangeable.
+   *
+   * Examples:
+   *
+   *     this.get('Content-Type');
+   *     // => "text/plain"
+   *
+   *     this.get('content-type');
+   *     // => "text/plain"
+   *
+   *     this.get('Something');
+   *     // => ''
+   */
+  get(field: string): string;
 }
 
 export interface FaaSHTTPContext
