@@ -1,4 +1,4 @@
-import { SCFHTTPEvent } from '@midwayjs/serverless-scf-starter';
+import { SCF } from '@midwayjs/cloud-function-definition';
 import { SCFBaseTrigger } from './base';
 import * as express from 'express';
 
@@ -25,7 +25,7 @@ export class ApiGatewayTrigger extends SCFBaseTrigger {
   }
 
   async toArgs() {
-    const event: Partial<SCFHTTPEvent> = {
+    const event: Partial<SCF.APIGatewayEvent> = {
       headerParameters: {},
       headers: this.triggerOptions.headers || {},
       httpMethod: this.triggerOptions.method || 'request method name',
