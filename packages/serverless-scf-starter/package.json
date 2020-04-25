@@ -8,6 +8,7 @@
     "@midwayjs/serverless-http-parser": "^0.2.81"
   },
   "devDependencies": {
+    "@midwayjs/cloud-function-definition": "^0.2.76",
     "@midwayjs/runtime-mock": "^0.2.76",
     "midway-bin": "^2.0.0"
   },

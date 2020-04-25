@@ -1,8 +1,7 @@
-export * from '@midwayjs/core';
+export * from '@midwayjs/cloud-function-definition';
 export * from './interface';
-export * from './typings/fc';
-export * from './typings/scf';
 export * from './starter';
+export * from '@midwayjs/core';
 export {
   Func as func,
   Provide as provide,
