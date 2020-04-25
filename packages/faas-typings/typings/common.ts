@@ -267,10 +267,6 @@ export interface FaaSHTTPResponse extends ContextDelegatedResponse {
    * Return response header, alias as response.header
    */
   headers: { [key: string]: any };
-  setHeader(name, value);
-  getHeader(field);
-  removeHeader(field);
-  hasHeader(field);
   /**
    * Check whether the response is one of the listed types.
    * Pretty much the same as `this.request.is()`.
