@@ -432,6 +432,7 @@ export class FaaSInvokePlugin extends BasePlugin {
 
   async getInvoke() {
     let handler;
+    let initHandler;
     let runtime;
     let invoke;
     const platform = this.getPlatform();
@@ -439,6 +440,7 @@ export class FaaSInvokePlugin extends BasePlugin {
       try {
         const handlerMod = require(this.entryInfo.fileName);
         handler = handlerMod[this.entryInfo.handlerName];
+        initHandler = handlerMod.initializer;
       } catch (e) {
         console.log('Get Invoke Handler Error', e);
         // this.invokeError(e);
@@ -446,9 +448,13 @@ export class FaaSInvokePlugin extends BasePlugin {
     }
     if (handler) {
       this.core.debug('Have Handler');
-      runtime = createRuntime({
+      const runtimeOpts: any = {
         handler,
-      });
+      };
+      if (initHandler) {
+        runtimeOpts.initHandler = initHandler;
+      }
+      runtime = createRuntime(runtimeOpts);
     }
 
     if (runtime) {
