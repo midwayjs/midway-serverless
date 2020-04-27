@@ -1,6 +1,6 @@
 {
   "name": "@midwayjs/runtime-engine",
-  "version": "0.2.76",
+  "version": "0.2.88",
   "main": "dist/index",
   "typings": "dist/index.d.ts",
   "dependencies": {
@@ -27,5 +27,6 @@
     "type": "git",
     "url": "git@github.com:midwayjs/midway-faas.git"
   },
+  "license": "MIT",
   "gitHead": "b67e2753cbdcc91813067ba2a1bb1ce7e85a3dff"
 }

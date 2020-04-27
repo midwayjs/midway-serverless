@@ -1,16 +1,16 @@
 {
   "name": "@midwayjs/gateway-common-http",
-  "version": "0.2.83",
+  "version": "0.2.88",
   "main": "dist/index",
   "typings": "dist/index.d.ts",
   "dependencies": {
-    "@midwayjs/gateway-common-core": "^0.2.83",
-    "@midwayjs/serverless-invoke": "^0.2.83",
-    "@midwayjs/serverless-spec-builder": "^0.2.82",
+    "@midwayjs/gateway-common-core": "^0.2.88",
+    "@midwayjs/serverless-invoke": "^0.2.88",
+    "@midwayjs/serverless-spec-builder": "^0.2.88",
     "picomatch": "^2.2.1"
   },
   "devDependencies": {
-    "@midwayjs/faas": "^0.2.76",
+    "@midwayjs/faas": "^0.2.88",
     "micromatch": "^4.0.2",
     "midway-bin": "^2.0.0",
     "minimatch": "^3.0.4"
@@ -26,6 +26,10 @@
     "cov": "NODE_ENV=unittest midway-bin cov --ts",
     "clean": "midway-bin clean",
     "autod": "midway-bin autod"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:midwayjs/midway-faas.git"
   },
   "license": "MIT",
   "gitHead": "5783f06ff0298f0e172f801cae053c3fc80813a9"

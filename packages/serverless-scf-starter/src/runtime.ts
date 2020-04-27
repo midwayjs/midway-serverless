@@ -1,6 +1,6 @@
 import { ServerlessLightRuntime } from '@midwayjs/runtime-engine';
 import { Context } from '@midwayjs/serverless-http-parser';
-import { SCFContext, SCFHTTPEvent } from './interface';
+import { SCF } from '@midwayjs/faas-typings';
 
 export class SCFRuntime extends ServerlessLightRuntime {
   /**
@@ -8,7 +8,7 @@ export class SCFRuntime extends ServerlessLightRuntime {
    * @param handler
    */
   asyncEvent(handler) {
-    return (event: object = {}, context = {} as SCFContext) => {
+    return (event: object = {}, context = {} as SCF.RequestContext) => {
       if (isHttpEvent(event)) {
         return this.wrapperWebInvoker(handler, event, context);
       }
@@ -16,7 +16,11 @@ export class SCFRuntime extends ServerlessLightRuntime {
     };
   }
 
-  async wrapperWebInvoker(handler, event: SCFHTTPEvent, context: SCFContext) {
+  async wrapperWebInvoker(
+    handler,
+    event: SCF.APIGatewayEvent,
+    context: SCF.RequestContext
+  ) {
     const ctx = new Context(event, context);
     const args = [ctx, event];
 
@@ -51,15 +55,23 @@ export class SCFRuntime extends ServerlessLightRuntime {
       ctx.body = JSON.stringify(ctx.body);
     }
 
+    const newHeader = {};
+    for (const key in ctx.res.headers) {
+      // The length after base64 is wrong.
+      if (!['content-length'].includes(key)) {
+        newHeader[key] = ctx.res.headers[key];
+      }
+    }
+
     return {
       isBase64Encoded: encoded,
       statusCode: ctx.status,
-      headers: ctx.res.headers,
+      headers: newHeader,
       body: ctx.body,
     };
   }
 
-  async wrapperEventInvoker(handler, event: any, context: SCFContext) {
+  async wrapperEventInvoker(handler, event: any, context: SCF.RequestContext) {
     const ctx = new Context({}, context);
     const args = [ctx, event];
     // 其他事件场景
@@ -76,6 +88,6 @@ export class SCFRuntime extends ServerlessLightRuntime {
   async afterInvokeHandler(err, result, context) {}
 }
 
-function isHttpEvent(event): event is SCFHTTPEvent {
+function isHttpEvent(event): event is SCF.APIGatewayEvent {
   return event?.httpMethod && event?.headers && event?.requestContext;
 }

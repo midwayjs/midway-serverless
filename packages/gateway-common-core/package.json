@@ -1,10 +1,10 @@
 {
   "name": "@midwayjs/gateway-common-core",
-  "version": "0.2.83",
+  "version": "0.2.88",
   "main": "dist/index",
   "typings": "dist/index.d.ts",
   "devDependencies": {
-    "@midwayjs/serverless-invoke": "^0.2.83",
+    "@midwayjs/serverless-invoke": "^0.2.88",
     "@types/express": "^4.17.0",
     "@types/koa": "^2.0.49",
     "body-parser": "^1.19.0",
@@ -24,6 +24,10 @@
     "cov": "NODE_ENV=unittest midway-bin cov --ts",
     "clean": "midway-bin clean",
     "autod": "midway-bin autod"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:midwayjs/midway-faas.git"
   },
   "license": "MIT",
   "gitHead": "5783f06ff0298f0e172f801cae053c3fc80813a9"

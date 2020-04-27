@@ -1,3 +1,4 @@
+English | [简体中文](./README.zh-CN.md)
 
 
 ![](https://img.alicdn.com/tfs/TB1HdniCSf2gK0jSZFPXXXsopXa-1000-353.png)
@@ -32,6 +33,41 @@ Midway FaaS is the Serverless framework used to build Node.js cloud functions. H
 ## Document
 
 - Guide [中文](https://www.yuque.com/midwayjs/faas) and [English](https://www.yuque.com/midwayjs/faas/quick_start?translate=en)
+
+## Ecology
+
+|    Project         |    Version                                |   Description       |
+|----------------|-----------------------------------------|-----------|
+| [midway-faas] | [![faas-status]][faas-package] |A serverless framework based on dependency injection for adaptive multi-cloud platforms|
+| [runtime-engine] | [![runtime-engine-status]][runtime-engine-package] |A base serverless runtime|
+| [serverless-fc-starter] | [![serverless-fc-starter-status]][serverless-fc-starter-package] |Aliyun FC Function Launcher|
+| [serverless-scf-starter] | [![serverless-scf-starter-status]][serverless-scf-starter-package] |Tencent Cloud SCF Function Launcher|
+| [midway] | [![midway-status]][midway-package] |A future-proof web framework base on dependency injection |
+
+
+[midway-faas]: https://github.com/midwayjs/midway-faas
+[midway]: https://github.com/midwayjs/midway
+[runtime-engine]: https://github.com/midwayjs/midway-faas/packages/runtime-engine
+[faas-cli]: https://github.com/midwayjs/midway-faas/packages/faas-cli
+[serverless-fc-starter]: https://github.com/midwayjs/midway-faas/packages/serverless-fc-starter
+[serverless-scf-starter]: https://github.com/midwayjs/midway-faas/packages/serverless-scf-starter
+
+[faas-status]: https://img.shields.io/npm/v/@midwayjs/faas.svg
+[midway-status]: https://img.shields.io/npm/v/midway.svg
+[runtime-engine-status]: https://img.shields.io/npm/v/@midwayjs/runtime-engine.svg
+[serverless-fc-starter-status]: https://img.shields.io/npm/v/@midwayjs/runtime-engine.svg
+[serverless-scf-starter-status]: https://img.shields.io/npm/v/@midwayjs/runtime-engine.svg
+
+[faas-package]: https://npmjs.com/package/@midwayjs/faas
+[midway-package]: https://npmjs.com/package/midway
+[runtime-engine-package]: https://npmjs.com/package/@midwayjs/runtime-engine
+[serverless-fc-starter-package]: https://npmjs.com/package/@midwayjs/serverless-fc-starter
+[serverless-scf-starter-package]: https://npmjs.com/package/@midwayjs/serverless-scf-starter
+
+## Community partners
+
+- [icejs](https://ice.work/)
+- [ykfe/ssr](https://github.com/ykfe/ssr/)
 
 ## License
 

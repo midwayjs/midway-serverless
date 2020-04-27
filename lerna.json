@@ -19,9 +19,10 @@
       ]
     },
     "version": {
-      "conventionalCommits": true
+      "conventionalCommits": true,
+      "createRelease": "github"
     }
   },
   "npmClient": "npm",
-  "version": "0.2.83"
+  "version": "0.2.88"
 }

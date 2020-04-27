@@ -3,7 +3,8 @@ import {
   FAAS_ARGS_KEY,
   ServerlessLightRuntime,
 } from '@midwayjs/runtime-engine';
-import { Context } from './context';
+import { Context } from '@midwayjs/serverless-http-parser';
+import * as util from 'util';
 
 export class FCRuntime extends ServerlessLightRuntime {
   /**
@@ -26,27 +27,38 @@ export class FCRuntime extends ServerlessLightRuntime {
   }
 
   async wrapperWebInvoker(handler, req, res, context) {
+    let ctx: Context;
+    const args = [];
     // for web
-    if (req.constructor.name === 'EventEmitter') {
+    const isHTTPMode =
+      req.constructor.name === 'EventEmitter' || util.types.isProxy(req); // for local test
+    if (isHTTPMode) {
+      // http
       const rawBody = await getRawBody(req);
       // const rawBody = 'test';
       // req.rawBody = rawBody;
       req.body = rawBody; // TODO: body parser
+      ctx = new Context(req, context);
+      // ctx.EventType = 'fc_http';
+      args.push(ctx);
+    } else {
+      // api gateway
+      ctx = new Context(req, context);
+      // ctx.EventType = 'fc_apigw';
+      args.push(ctx);
+      // Pass original event
+      args.push(req);
     }
 
-    const ctx: any = new Context(req, res, context);
-    ctx.EventType = 'fc_http';
-    const args = [ctx];
-
-    if (ctx.method === 'GET') {
-      if (ctx.query && ctx.query[FAAS_ARGS_KEY]) {
-        args.push(ctx.query[FAAS_ARGS_KEY]);
-      }
-    } else if (ctx.method === 'POST') {
-      if (ctx.req && ctx.req.body && ctx.req.body[FAAS_ARGS_KEY]) {
-        args.push(ctx.req.body[FAAS_ARGS_KEY]);
-      }
-    }
+    // if (ctx.method === 'GET') {
+    //   if (ctx.query && ctx.query[FAAS_ARGS_KEY]) {
+    //     args.push(ctx.query[FAAS_ARGS_KEY]);
+    //   }
+    // } else if (ctx.method === 'POST') {
+    //   if (ctx.req && ctx.req.body && ctx.req.body[FAAS_ARGS_KEY]) {
+    //     args.push(ctx.req.body[FAAS_ARGS_KEY]);
+    //   }
+    // }
 
     return this.invokeHandlerWrapper(ctx, async () => {
       if (!handler) {
@@ -61,35 +73,47 @@ export class FCRuntime extends ServerlessLightRuntime {
       if (result) {
         ctx.body = result;
       }
-      const data = ctx.body;
+
       let encoded = false;
-      if (typeof data === 'string') {
-        if (!ctx.type) {
-          ctx.type = 'text/plain';
+      if (!isHTTPMode) {
+        const data = ctx.body;
+        if (typeof data === 'string') {
+          if (!ctx.type) {
+            ctx.type = 'text/plain';
+          }
+          ctx.body = data;
+        } else if (Buffer.isBuffer(data)) {
+          encoded = true;
+          if (!ctx.type) {
+            ctx.type = 'application/octet-stream';
+          }
+          ctx.body = data.toString('base64');
+        } else if (typeof data === 'object') {
+          if (!ctx.type) {
+            ctx.type = 'application/json';
+          }
+          ctx.body = JSON.stringify(data);
+        } else {
+          // 阿里云网关必须返回字符串
+          if (!ctx.type) {
+            ctx.type = 'text/plain';
+          }
+          ctx.body = data + '';
         }
-        ctx.body = data;
-      } else if (Buffer.isBuffer(data)) {
-        encoded = true;
-        if (!ctx.type) {
-          ctx.type = 'application/octet-stream';
+      }
+
+      const newHeader = {};
+
+      for (const key in ctx.res.headers) {
+        // The length after base64 is wrong.
+        if (!['content-length'].includes(key)) {
+          newHeader[key] = ctx.res.headers[key];
         }
-        ctx.body = data.toString('base64');
-      } else if (typeof data === 'object') {
-        if (!ctx.type) {
-          ctx.type = 'application/json';
-        }
-        ctx.body = JSON.stringify(data);
-      } else {
-        // 阿里云网关必须返回字符串
-        if (!ctx.type) {
-          ctx.type = 'text/plain';
-        }
-        ctx.body = data + '';
       }
 
       if (res.setHeader) {
-        for (const key in ctx.res.headers) {
-          res.setHeader(key, ctx.res.headers[key]);
+        for (const key in newHeader) {
+          res.setHeader(key, newHeader[key]);
         }
       }
 
@@ -104,7 +128,7 @@ export class FCRuntime extends ServerlessLightRuntime {
       return {
         isBase64Encoded: encoded,
         statusCode: ctx.status,
-        headers: ctx.res.headers,
+        headers: newHeader,
         body: ctx.body,
       };
     });
@@ -121,9 +145,14 @@ export class FCRuntime extends ServerlessLightRuntime {
         try {
           event = JSON.parse(event);
         } catch (_err) {}
-        if (event && event.headers && event.headers['X-Ca-Api-Gateway']) {
-          return this.wrapperApiGwEventInvoke(handler, event, context);
-        }
+      }
+      if (
+        event &&
+        event.headers &&
+        'queryParameters' in event &&
+        'httpMethod' in event
+      ) {
+        return this.wrapperWebInvoker(handler, event, {}, context);
       }
       args.push(event);
     }
@@ -136,55 +165,4 @@ export class FCRuntime extends ServerlessLightRuntime {
   async beforeInvokeHandler(context) {}
 
   async afterInvokeHandler(err, result, context) {}
-
-  async wrapperApiGwEventInvoke(handler, req, context) {
-    const ctx: any = new Context({
-      ...req,
-      method: req.httpMethod,
-      query: req.queryParameters,
-    }, {}, context);
-    ctx.EventType = 'fc_apigw';
-    const args = [ctx];
-    return this.invokeHandlerWrapper(ctx, async () => {
-      if (!handler) {
-        return this.defaultInvokeHandler.apply(this, args);
-      }
-      return handler.apply(handler, args);
-    }).then((result) => {
-      if (result) {
-        ctx.body = result;
-      }
-      const data = ctx.body;
-      let encoded = false;
-      if (typeof data === 'string') {
-        if (!ctx.type) {
-          ctx.type = 'text/plain';
-        }
-        ctx.body = data;
-      } else if (Buffer.isBuffer(data)) {
-        encoded = true;
-        if (!ctx.type) {
-          ctx.type = 'application/octet-stream';
-        }
-        ctx.body = data.toString('base64');
-      } else if (typeof data === 'object') {
-        if (!ctx.type) {
-          ctx.type = 'application/json';
-        }
-        ctx.body = JSON.stringify(data);
-      } else {
-        // 阿里云网关必须返回字符串
-        if (!ctx.type) {
-          ctx.type = 'text/plain';
-        }
-        ctx.body = data + '';
-      }
-      return {
-        isBase64Encoded: encoded,
-        statusCode: ctx.status,
-        headers: ctx.res.headers,
-        body: ctx.body,
-      };
-    });
-  }
 }

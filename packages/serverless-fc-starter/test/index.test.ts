@@ -101,7 +101,10 @@ describe('/test/index.test.ts', () => {
       });
       const res = await test(handle).runHttp('', '');
       assert.equal(res.statusCode, 200);
-      assert.equal(res.headers['content-type'], 'application/json; charset=utf-8');
+      assert.equal(
+        res.headers['content-type'],
+        'application/json; charset=utf-8'
+      );
       assert.equal(res.body, '{"ok":true}');
     });
 
@@ -115,7 +118,10 @@ describe('/test/index.test.ts', () => {
       });
       const res = await test(handle).runHttp('', '');
       assert.equal(res.statusCode, 200);
-      assert.equal(res.headers['content-type'], 'application/json; charset=utf-8');
+      assert.equal(
+        res.headers['content-type'],
+        'application/json; charset=utf-8'
+      );
       assert.equal(res.body, '{"ok":true}');
     });
 
@@ -129,7 +135,10 @@ describe('/test/index.test.ts', () => {
       });
       const res = await test(handle).runHttp('', '');
       assert.equal(res.statusCode, 200);
-      assert.equal(res.headers['content-type'], 'application/json; charset=utf-8');
+      assert.equal(
+        res.headers['content-type'],
+        'application/json; charset=utf-8'
+      );
       assert.equal(res.body, '{"ok":true}');
     });
 
@@ -308,7 +317,7 @@ describe('/test/index.test.ts', () => {
       assert.equal(body.query.echostr, 'hehe');
     });
 
-    it('GET should use faas parameters to appoint parameter', async () => {
+    xit('GET should use faas parameters to appoint parameter', async () => {
       const runtime = await start({});
       const handle = asyncWrapper(async (...args) => {
         return runtime.asyncEvent(async (ctx, user) => {
@@ -327,7 +336,7 @@ describe('/test/index.test.ts', () => {
       assert(data.body === 'harry hello');
     });
 
-    it('GET should get text if return data', async () => {
+    xit('GET should get text if return data', async () => {
       const runtime = await start({});
       const handle = asyncWrapper(async (...args) => {
         return runtime.asyncEvent(async (ctx, user) => {
@@ -346,7 +355,7 @@ describe('/test/index.test.ts', () => {
       assert(data.body === 'hello world harry');
     });
 
-    it('GET should get params in post method', async () => {
+    xit('GET should get params in post method', async () => {
       const runtime = await start({});
       const handle = asyncWrapper(async (...args) => {
         return runtime.asyncEvent(async (ctx, user) => {

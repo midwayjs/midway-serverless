@@ -1,14 +1,15 @@
 {
   "name": "@midwayjs/serverless-scf-starter",
-  "version": "0.2.81",
+  "version": "0.2.88",
   "main": "dist/index",
   "typings": "dist/index.d.ts",
   "dependencies": {
-    "@midwayjs/runtime-engine": "^0.2.76",
-    "@midwayjs/serverless-http-parser": "^0.2.81"
+    "@midwayjs/runtime-engine": "^0.2.88",
+    "@midwayjs/serverless-http-parser": "^0.2.88"
   },
   "devDependencies": {
-    "@midwayjs/runtime-mock": "^0.2.76",
+    "@midwayjs/faas-typings": "^0.2.88",
+    "@midwayjs/runtime-mock": "^0.2.88",
     "midway-bin": "^2.0.0"
   },
   "engines": {
@@ -25,5 +26,10 @@
     "clean": "midway-bin clean",
     "autod": "midway-bin autod"
   },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:midwayjs/midway-faas.git"
+  },
+  "license": "MIT",
   "gitHead": "b67e2753cbdcc91813067ba2a1bb1ce7e85a3dff"
 }
