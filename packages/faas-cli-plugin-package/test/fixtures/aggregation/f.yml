@@ -58,7 +58,7 @@ custom:
     domainName: 'aggregation.exanple.com'
 
 aggregation:
-  api:
+  all:
     functionsPattern:
       - api*
   renderNot2:
