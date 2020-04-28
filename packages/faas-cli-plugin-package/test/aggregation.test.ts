@@ -25,7 +25,7 @@ describe('/test/package.test.ts', () => {
       core.addPlugin(AliyunFCPlugin);
       await core.ready();
       await core.invoke(['package']);
-      assert(existsSync(resolve(buildDir, 'aggregationall.js')));
+      assert(existsSync(resolve(buildDir, 'api.js')));
       assert(existsSync(resolve(buildDir, 'normal.js')));
       assert(existsSync(resolve(buildDir, 'renderNot2.js')));
     });
