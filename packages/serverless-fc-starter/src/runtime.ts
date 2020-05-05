@@ -84,33 +84,30 @@ export class FCRuntime extends ServerlessLightRuntime {
         }
 
         let encoded = false;
-        if (!isHTTPMode) {
-          const data = ctx.body;
-          if (typeof data === 'string') {
-            if (!ctx.type) {
-              ctx.type = 'text/plain';
-            }
-            ctx.body = data;
-          } else if (Buffer.isBuffer(data)) {
-            encoded = true;
-            if (!ctx.type) {
-              ctx.type = 'application/octet-stream';
-            }
-            ctx.body = data.toString('base64');
-          } else if (typeof data === 'object') {
-            if (!ctx.type) {
-              ctx.type = 'application/json';
-            }
-            ctx.body = JSON.stringify(data);
-          } else {
-            // 阿里云网关必须返回字符串
-            if (!ctx.type) {
-              ctx.type = 'text/plain';
-            }
-            ctx.body = data + '';
+        const data = ctx.body;
+        if (typeof data === 'string') {
+          if (!ctx.type) {
+            ctx.type = 'text/plain';
           }
+          ctx.body = data;
+        } else if (Buffer.isBuffer(data)) {
+          encoded = true;
+          if (!ctx.type) {
+            ctx.type = 'application/octet-stream';
+          }
+          ctx.body = data.toString('base64');
+        } else if (typeof data === 'object') {
+          if (!ctx.type) {
+            ctx.type = 'application/json';
+          }
+          ctx.body = JSON.stringify(data);
+        } else {
+          // 阿里云网关必须返回字符串
+          if (!ctx.type) {
+            ctx.type = 'text/plain';
+          }
+          ctx.body = data + '';
         }
-
         const newHeader = {};
 
         for (const key in ctx.res.headers) {
