@@ -62,7 +62,7 @@ export class Test {
     } else if (this.argv.extension) {
       args.push(`--extension=${this.argv.extension}`);
     }
-    let timeout =  this.argv.timeout || process.env.TEST_TIMEOUT || 60000;
+    let timeout = this.argv.timeout || process.env.TEST_TIMEOUT || 60000;
     if (process.env.JB_DEBUG_FILE) {
       // --no-timeout
       timeout = false;
