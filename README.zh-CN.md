@@ -5,22 +5,22 @@
 
 <p align="center">
   <a href="https://www.npmjs.com/package/@midwayjs/faas" alt="npm version">
-    <img src="https://img.shields.io/npm/v/@midwayjs/faas.svg?style=for-the-badge&labelColor=000000" />
+    <img src="https://img.shields.io/npm/v/@midwayjs/faas.svg?style=for-the-badge" />
   </a>
   <a href="./LICENSE" alt="GitHub license">
-    <img src="https://img.shields.io/npm/l/@midwayjs/faas?style=for-the-badge&labelColor=000000" />
+    <img src="https://img.shields.io/npm/l/@midwayjs/faas?style=for-the-badge" />
   </a>
   <a href="https://github.com/midwayjs/midway-faas/actions?query=workflow%3A%22Node.js+CI%22" alt="Node.js CI">
-    <img src="https://img.shields.io/badge/Node.js%20CI-passing-brightgreen?style=for-the-badge&labelColor=000000" />
+    <img src="https://img.shields.io/badge/Node.js%20CI-passing-brightgreen?style=for-the-badge" />
   </a>
   <a href="https://github.com/midwayjs/midway-faas" alt="Activity">
-    <img src="https://img.shields.io/github/commit-activity/m/midwayjs/midway-faas?style=for-the-badge&labelColor=000000" />
+    <img src="https://img.shields.io/github/commit-activity/m/midwayjs/midway-faas?style=for-the-badge" />
   </a>
   <a href="https://github.com/midwayjs/midway-faas/graphs/contributors" alt="Contributors">
-    <img src="https://img.shields.io/github/contributors/midwayjs/midway-faas?style=for-the-badge&labelColor=000000" />
+    <img src="https://img.shields.io/github/contributors/midwayjs/midway-faas?style=for-the-badge" />
   </a>
   <a href="https://gitpod.io/#https://github.com/midwayjs/midway-faas" alt="Gitpod Ready-to-Code">
-    <img src="https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod&style=for-the-badge&labelColor=000000" />
+    <img src="https://img.shields.io/badge/Gitpod-Ready--to--Code-blue?logo=gitpod&style=for-the-badge" />
   </a>
 </p>
 
