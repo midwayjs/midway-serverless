@@ -45,3 +45,8 @@ export interface IGateway {
   };
   'x-gateway-domain'?: string; // 域名
 }
+
+export interface IInfo {
+  name: string;
+  archivePath?: string;
+}

@@ -6,6 +6,7 @@ import {
   IPathMethodInfo,
   IPathInfo,
   ITriggerItem,
+  IInfo,
 } from './inter';
 export const generator = async (options: IOptions) => {
   const {
@@ -53,8 +54,8 @@ export const generator = async (options: IOptions) => {
       };
     });
   }
-  const functions = infos.map(
-    (info: { name: string; archivePath?: string }) => {
+  const functions = infos
+    .map((info: IInfo) => {
       if (!yamlData.functions) {
         return;
       }
@@ -113,16 +114,13 @@ export const generator = async (options: IOptions) => {
         trigger,
         ...extra,
       };
-    }
-  ).filter(v => !!v);
+    })
+    .filter(v => !!v);
 
-  if (
-    yamlData.apiGateway &&
-    yamlData.apiGateway.type
-  ) {
+  if (yamlData.apiGateway && yamlData.apiGateway.type) {
     gateway = {
       kind: 'auto-' + yamlData.apiGateway.type,
-      ...getApiGwData(baseDir, yamlData.apiGateway.type)
+      ...getApiGwData(baseDir, yamlData.apiGateway.type),
     };
   }
 
@@ -133,14 +131,14 @@ export const generator = async (options: IOptions) => {
   };
 };
 
-const getApiGwData = (baseDir, type: string) => {
-  // const file = type;
+const getApiGwData = (baseDir: string, type: string) => {
   const apigwFile = resolve(baseDir, `${type}_mapping.json`);
   try {
     return JSON.parse(readFileSync(apigwFile).toString());
-  } catch(e) {}
-  return {};
-}
+  } catch (e) {
+    return {};
+  }
+};
 
 const findBaseDir = (path: string, index?: number) => {
   index = index || 0;
@@ -153,13 +151,13 @@ const findBaseDir = (path: string, index?: number) => {
     return process.cwd();
   }
   return findBaseDir(parent, index + 1);
-}
+};
 
 export const simpleGenerator = async (
   archivesPath: string,
   yamlData: any,
   extra?: any,
-  baseDir?: string,
+  baseDir?: string
 ) => {
   if (!baseDir) {
     baseDir = findBaseDir(archivesPath);
@@ -170,6 +168,6 @@ export const simpleGenerator = async (
     archivePaths,
     archiveDirPath: './archives/',
     extra,
-    baseDir
+    baseDir,
   });
 };

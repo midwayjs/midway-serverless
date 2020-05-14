@@ -49,8 +49,8 @@ describe('/test/index.test.ts', () => {
         name: 'test',
       },
       apiGateway: {
-        type: 'test'
-      }
+        type: 'test',
+      },
     });
     assert(meta.gateway['kind'] === 'auto-test');
     assert(meta.gateway['testName'] === '123456');
