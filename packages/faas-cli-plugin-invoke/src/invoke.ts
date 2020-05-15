@@ -70,7 +70,7 @@ export async function invoke(options: InvokeOptions) {
     export: 'invokeFun', // 要包裹的方法的方法名
     debug: isDebug,
   })(options);
-};
+}
 
 export interface IGetFuncList {
   functionDir?: string; // 函数所在目录
