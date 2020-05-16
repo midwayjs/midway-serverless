@@ -1,6 +1,6 @@
 {
   "name": "@midwayjs/faas",
-  "version": "0.2.95",
+  "version": "0.2.96",
   "main": "dist/index",
   "typings": "index.d.ts",
   "dependencies": {
@@ -17,7 +17,8 @@
     "node": ">= 10"
   },
   "files": [
-    "dist"
+    "dist",
+    "index.d.ts"
   ],
   "keywords": [
     "serverless",
