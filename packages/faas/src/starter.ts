@@ -157,7 +157,9 @@ export class FaaSStarter implements IFaaSStarter {
 
       if (funOptions && funOptions.mod) {
         // invoke middleware, just for http
-        const fnMiddlewere = [].concat(funOptions.middleware);
+        let fnMiddlewere = [];
+        fnMiddlewere = fnMiddlewere.concat(this.globalMiddleware);
+        fnMiddlewere = fnMiddlewere.concat(funOptions.middleware);
         if (fnMiddlewere.length) {
           const mw: any[] = await this.loadMiddleware(fnMiddlewere);
           mw.push(async ctx => {
