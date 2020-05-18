@@ -262,12 +262,6 @@ export class FaaSStarter implements IFaaSStarter {
         await this.getApplicationContext().getAsync(module);
       }
 
-      // load global web middleware
-      const globalMW = await this.loadMiddleware(this.globalMiddleware);
-      for (const mw of globalMW) {
-        this.webApplication.use(mw as any);
-      }
-
       // now only for test case
       if (typeof opts.cb === 'function') {
         await opts.cb();
