@@ -261,7 +261,7 @@ interface ContextDelegatedResponse {
 export interface FaaSHTTPResponse extends ContextDelegatedResponse {
   /**
    * Return response header.
-   *
+   */
   header: { [key: string]: any };
   /**
    * Return response header, alias as response.header
