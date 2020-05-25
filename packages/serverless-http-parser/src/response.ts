@@ -2,19 +2,11 @@ import * as getType from 'cache-content-type';
 import * as assert from 'assert';
 import * as statuses from 'statuses';
 import { is as typeis } from 'type-is';
-import { FaaSHTTPResponse } from '@midwayjs/faas-typings';
 
-export class Response implements FaaSHTTPResponse {
-  statusCode;
-  explicitStatus;
-  _body;
-  _headers;
-
-  constructor() {
-    this.statusCode = 200;
-    this._body = null;
-    this._headers = {};
-  }
+export const response = {
+  explicitStatus: null,
+  _body: null,
+  res: null,
 
   /**
    * Return response header.
@@ -23,8 +15,8 @@ export class Response implements FaaSHTTPResponse {
    * @api public
    */
   get header() {
-    return this._headers;
-  }
+    return this.res.headers;
+  },
 
   /**
    * Return response header, alias as response.header
@@ -34,7 +26,7 @@ export class Response implements FaaSHTTPResponse {
    */
   get headers() {
     return this.header;
-  }
+  },
 
   /**
    * Get response body.
@@ -44,7 +36,7 @@ export class Response implements FaaSHTTPResponse {
    */
   get body() {
     return this._body;
-  }
+  },
 
   /**
    * Set response body.
@@ -92,24 +84,7 @@ export class Response implements FaaSHTTPResponse {
     // json
     this.remove('Content-Length');
     this.type = 'json';
-  }
-
-  setHeader(name, value) {
-    name = name.toLowerCase();
-    this.headers[name] = value;
-  }
-
-  getHeader(field) {
-    return this.headers[field.toLowerCase()] || '';
-  }
-
-  removeHeader(field) {
-    delete this.headers[field.toLowerCase()];
-  }
-
-  hasHeader(field) {
-    return field.toLowerCase() in this.headers;
-  }
+  },
 
   /**
    * Set the ETag of a response.
@@ -126,7 +101,7 @@ export class Response implements FaaSHTTPResponse {
   set etag(val) {
     if (!/^(W\/)?"/.test(val)) val = `"${val}"`;
     this.set('ETag', val);
-  }
+  },
 
   /**
    * Get the ETag of a response.
@@ -137,7 +112,7 @@ export class Response implements FaaSHTTPResponse {
 
   get etag() {
     return this.get('ETag');
-  }
+  },
 
   /**
    * Returns true if the header identified by name is currently set in the outgoing headers.
@@ -156,8 +131,8 @@ export class Response implements FaaSHTTPResponse {
    * @api public
    */
   has(field) {
-    return this.hasHeader(field);
-  }
+    return this.res.hasHeader(field);
+  },
 
   /**
    * Set header `field` to `val`, or pass
@@ -178,13 +153,13 @@ export class Response implements FaaSHTTPResponse {
       if (Array.isArray(val))
         val = val.map(v => (typeof v === 'string' ? v : String(v)));
       else if (typeof val !== 'string') val = String(val);
-      this.setHeader(field, val);
+      this.res.setHeader(field, val);
     } else {
       for (const key in field) {
         this.set(key, field[key]);
       }
     }
-  }
+  },
 
   /**
    * Append additional header `field` with value `val`.
@@ -210,7 +185,7 @@ export class Response implements FaaSHTTPResponse {
     }
 
     return this.set(field, val);
-  }
+  },
 
   /**
    * Return response header.
@@ -229,8 +204,8 @@ export class Response implements FaaSHTTPResponse {
    */
 
   get(field) {
-    return this.getHeader(field);
-  }
+    return this.res.getHeader(field);
+  },
 
   set type(type) {
     type = getType(type);
@@ -239,7 +214,7 @@ export class Response implements FaaSHTTPResponse {
     } else {
       this.remove('Content-Type');
     }
-  }
+  },
 
   get type() {
     const type = this.get('Content-Type');
@@ -247,15 +222,15 @@ export class Response implements FaaSHTTPResponse {
       return '';
     }
     return type.split(';', 1)[0];
-  }
+  },
 
   remove(field) {
-    this.removeHeader(field);
-  }
+    this.res.removeHeader(field);
+  },
 
   get status() {
-    return this.statusCode;
-  }
+    return this.res.statusCode;
+  },
 
   /**
    * Set response status code.
@@ -268,9 +243,9 @@ export class Response implements FaaSHTTPResponse {
     assert(Number.isInteger(code), 'status code must be a number');
     assert(code >= 100 && code <= 999, `invalid status code: ${code}`);
     this.explicitStatus = true;
-    this.statusCode = code;
+    this.res.statusCode = code;
     if (this.body && statuses.empty[code]) this.body = null;
-  }
+  },
 
   /**
    * Set Content-Length field to `n`.
@@ -278,9 +253,9 @@ export class Response implements FaaSHTTPResponse {
    * @param {Number} n
    * @api public
    */
-  set length(n) {
-    this.set('Content-Length', n);
-  }
+  set length(n: number) {
+    this.set('Content-Length', String(n));
+  },
 
   /**
    * Return parsed response Content-Length when present.
@@ -299,7 +274,7 @@ export class Response implements FaaSHTTPResponse {
     if ('string' === typeof body) return Buffer.byteLength(body);
     if (Buffer.isBuffer(body)) return body.length;
     return Buffer.byteLength(JSON.stringify(body));
-  }
+  },
 
   /**
    * Set the Last-Modified date using a string or a Date.
@@ -314,7 +289,7 @@ export class Response implements FaaSHTTPResponse {
   set lastModified(val: Date) {
     if ('string' === typeof val) val = new Date(val);
     this.set('Last-Modified', val.toUTCString());
-  }
+  },
 
   /**
    * Get the Last-Modified date in Date form, if it exists.
@@ -329,7 +304,7 @@ export class Response implements FaaSHTTPResponse {
       return new Date(date);
     }
     return undefined;
-  }
+  },
 
   /**
    * Check whether the response is one of the listed types.
@@ -343,7 +318,7 @@ export class Response implements FaaSHTTPResponse {
 
   is(type, ...types) {
     return typeis(this.type, type, ...types);
-  }
+  },
 
-  end() {}
-}
+  end() {},
+};

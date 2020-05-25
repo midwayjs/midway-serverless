@@ -1,18 +1,21 @@
 import * as assert from 'assert';
-import { Application } from '../src/application';
+import { Application, HTTPRequest, HTTPResponse } from '../src';
 
 describe('test http parser', () => {
   it('should parser tencent apigw event', () => {
     const app = new Application();
-    const context = app.createContext(
+    const req = new HTTPRequest(
       require('./resource/scf_apigw.json'),
       require('./resource/scf_ctx.json')
     );
+    const res = new HTTPResponse();
+    const context = app.createContext(req, res);
+
     // alias
-    assert(context.req === context.request);
-    assert(context.res === context.response);
+    assert(context.req !== context.request);
+    assert(context.res !== context.response);
     assert(context.header === context.headers);
-    assert(context.headers === context.req.headers);
+    assert(context.headers === context.request.headers);
 
     // request
     assert(context.method === 'POST');
@@ -54,7 +57,7 @@ describe('test http parser', () => {
     // set string
     context.body = 'hello world';
     assert(context.body === 'hello world');
-    assert(context.res.body === 'hello world');
+    assert(context.response.body === 'hello world');
     assert(context.type === 'text/plain');
 
     // set json
@@ -82,7 +85,7 @@ describe('test http parser', () => {
 
     context.type = 'html';
     assert.deepStrictEqual(
-      context.res.get('Content-Type'),
+      context.response.get('Content-Type'),
       'text/html; charset=utf-8'
     );
 
@@ -90,7 +93,7 @@ describe('test http parser', () => {
     assert.deepStrictEqual(context.params['path'], 'value');
 
     assert.deepStrictEqual(context.is('html', 'application/*'), false);
-    assert.deepStrictEqual(context.res.get('ETag'), '');
+    assert.deepStrictEqual(context.response.get('ETag'), '');
 
     const cacheTime = 1587543474000;
     // set etag
@@ -98,12 +101,12 @@ describe('test http parser', () => {
       Etag: '1234',
       'Last-Modified': new Date(cacheTime),
     });
-    assert.deepStrictEqual(context.res.get('ETag').length, 4);
-    assert.deepStrictEqual(context.res.lastModified.getTime(), cacheTime);
+    assert.deepStrictEqual(context.response.get('ETag').length, 4);
+    assert.deepStrictEqual(context.response.lastModified.getTime(), cacheTime);
 
     context.lastModified = new Date(cacheTime + 1000);
     assert.deepStrictEqual(
-      context.res.lastModified.getTime(),
+      context.response.lastModified.getTime(),
       cacheTime + 1000
     );
 
@@ -111,7 +114,7 @@ describe('test http parser', () => {
     assert.deepStrictEqual(context.length, 7);
     context.length = 100;
     assert.deepStrictEqual(context.length, 100);
-    assert.deepStrictEqual(context.res.get('Content-Length'), '100');
+    assert.deepStrictEqual(context.response.get('Content-Length'), '100');
 
     // context.cookies.set('bbb', '11111');
     // context.cookies.set('ccc', '22');
@@ -120,7 +123,7 @@ describe('test http parser', () => {
 
   it('should parser fc http event', () => {
     const app = new Application();
-    const context = app.createContext(
+    const req = new HTTPRequest(
       Object.assign(require('./resource/fc_http.json'), {
         body: Buffer.from(
           JSON.stringify({
@@ -130,11 +133,14 @@ describe('test http parser', () => {
       }),
       require('./resource/fc_ctx.json')
     );
+    const res = new HTTPResponse();
+    const context = app.createContext(req, res);
+
     // alias
-    assert(context.req === context.request);
-    assert(context.res === context.response);
+    assert(context.req !== context.request);
+    assert(context.res !== context.response);
     assert(context.header === context.headers);
-    assert(context.headers === context.req.headers);
+    assert(context.headers === context.request.headers);
 
     // request
     assert(context.method === 'GET');
@@ -172,7 +178,7 @@ describe('test http parser', () => {
     // set string
     context.body = 'hello world';
     assert(context.body === 'hello world');
-    assert(context.res.body === 'hello world');
+    assert(context.response.body === 'hello world');
     assert(context.type === 'text/plain');
 
     // set json
@@ -185,13 +191,16 @@ describe('test http parser', () => {
 
   it('should parser aliyun apigw event', () => {
     const app = new Application();
-    const context = app.createContext(
+    const req = new HTTPRequest(
       require('./resource/fc_apigw.json'),
       require('./resource/fc_ctx.json')
     );
+    const res = new HTTPResponse();
+    const context = app.createContext(req, res);
+
     // alias
-    assert(context.req === context.request);
-    assert(context.res === context.response);
+    assert(context.req !== context.request);
+    assert(context.res !== context.response);
     assert(context.header === context.headers);
     assert(context.headers === context.req.headers);
 
@@ -233,7 +242,7 @@ describe('test http parser', () => {
     // set string
     context.body = 'hello world';
     assert(context.body === 'hello world');
-    assert(context.res.body === 'hello world');
+    assert(context.response.body === 'hello world');
     assert(context.type === 'text/plain');
 
     // set json
