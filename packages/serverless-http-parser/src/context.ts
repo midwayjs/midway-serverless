@@ -10,11 +10,11 @@ export const context = {
   /**
    * faas origin context object
    */
-  get getOriginEvent(): FaaSOriginContext {
+  get originEvent() {
     return this.request.originEvent;
   },
 
-  get originContext() {
+  get originContext(): FaaSOriginContext {
     return this.request.originContext;
   },
 
@@ -96,6 +96,10 @@ export const context = {
     this.response.etag = value;
   },
 
+  get etag() {
+    return this.response.etag;
+  },
+
   set lastModified(value) {
     this.response.lastModified = value;
   },
@@ -109,11 +113,11 @@ export const context = {
   },
 
   get accept() {
-    return this.response.accept;
+    return this.request.accept;
   },
 
   get logger() {
-    return this.originContext.logger || console;
+    return (this.originContext as any).logger || console;
   },
 
   is(type, ...types) {

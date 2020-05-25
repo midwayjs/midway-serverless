@@ -50,7 +50,7 @@ export class Application {
    * @api public
    */
 
-  use(fn: () => {}) {
+  use(fn: (...args) => Promise<void>) {
     if (typeof fn !== 'function')
       throw new TypeError('middleware must be a function!');
     this.middleware.push(fn);

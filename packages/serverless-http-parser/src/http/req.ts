@@ -13,8 +13,8 @@ export class HTTPRequest {
   public bodyParsed = false;
 
   constructor(event, context) {
-    this.originContext = context;
     this.originEvent = event;
+    this.originContext = context;
   }
 
   get [EVENT](): GatewayEvent {
@@ -36,11 +36,11 @@ export class HTTPRequest {
   /**
    * faas origin context object
    */
-  getOriginEvent(): FaaSOriginContext {
+  getOriginEvent() {
     return this.originEvent;
   }
 
-  getOriginContext() {
+  getOriginContext(): FaaSOriginContext {
     return this.originContext;
   }
 

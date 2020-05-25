@@ -322,6 +322,11 @@ export interface FaaSHTTPContext
    * FaaS original context object.
    */
   originContext: FaaSOriginContext;
+
+  /**
+   * FaaS original event object.
+   */
+  originEvent: any;
 }
 
 export type FaaSOriginContext = FC.RequestContext | SCF.RequestContext;

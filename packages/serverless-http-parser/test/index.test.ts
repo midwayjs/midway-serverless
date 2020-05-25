@@ -1,5 +1,6 @@
 import * as assert from 'assert';
 import { Application, HTTPRequest, HTTPResponse } from '../src';
+import { FaaSHTTPContext } from '@midwayjs/faas-typings';
 
 describe('test http parser', () => {
   it('should parser tencent apigw event', () => {
@@ -255,5 +256,92 @@ describe('test http parser', () => {
       context.host,
       'service-3ei3tii4-251000691.ap-guangzhou.apigateway.myqloud.com'
     );
+  });
+
+  it('should test callback', async () => {
+    const app = new Application();
+    app.use(async (ctx, next) => {
+      ctx.aaa = 'test';
+      await next();
+    });
+    const req = new HTTPRequest(
+      require('./resource/scf_apigw.json'),
+      require('./resource/scf_ctx.json')
+    );
+    const res = new HTTPResponse();
+    const respond = app.callback();
+    const ctx: FaaSHTTPContext = await new Promise(resolve => {
+      respond(req, res, ctx => {
+        resolve(ctx);
+      });
+    });
+    assert((ctx as any).aaa === 'test');
+    assert.deepStrictEqual(
+      ctx.originContext,
+      require('./resource/scf_ctx.json')
+    );
+    assert.deepStrictEqual(
+      ctx.originEvent,
+      require('./resource/scf_apigw.json')
+    );
+    const n = Date.now();
+    ctx.etag = n + '';
+    assert(ctx.etag === '"' + n + '"');
+    assert((ctx as any).logger === console);
+
+    assert(ctx.request.accepts('html') === 'html');
+    assert(ctx.accept);
+
+    ctx.append('X-FaaS-Time', '444');
+    assert(ctx.response.headers['x-faas-time']);
+    ctx.remove('X-FaaS-Time');
+    assert(!ctx.response.headers['x-faas-time']);
+
+    ctx.type = 'html';
+    assert(ctx.response.headers['content-type']);
+    ctx.body = null;
+    assert(!ctx.response.headers['content-type']);
+
+    ctx.body = '22';
+    assert(ctx.status === 204);
+  });
+
+  it('should set status first time', () => {
+    const app = new Application();
+    const req = new HTTPRequest(
+      require('./resource/scf_apigw.json'),
+      require('./resource/scf_ctx.json')
+    );
+    const res = new HTTPResponse();
+    const ctx = app.createContext(req, res);
+    ctx.body = '123';
+    assert(ctx.status === 200);
+  });
+
+  it('should set body use buffer', () => {
+    const app = new Application();
+    const req = new HTTPRequest(
+      require('./resource/scf_apigw.json'),
+      require('./resource/scf_ctx.json')
+    );
+    const res = new HTTPResponse();
+    const ctx = app.createContext(req, res);
+    ctx.body = Buffer.from('123');
+    assert(ctx.status === 200);
+  });
+
+  it('should set body use stream', () => {
+    const app = new Application();
+    const req = new HTTPRequest(
+      require('./resource/scf_apigw.json'),
+      require('./resource/scf_ctx.json')
+    );
+    const res = new HTTPResponse();
+    const ctx = app.createContext(req, res);
+    try {
+      ctx.body = { pipe: () => {} };
+    } catch (err) {
+      assert(err.message === 'unsupport pipe value');
+    }
   });
 });
