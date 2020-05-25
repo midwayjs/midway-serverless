@@ -8,6 +8,10 @@ export class HTTPResponse {
     return this._headers;
   }
 
+  set headers(value) {
+    this._headers = value;
+  }
+
   getHeader(field) {
     return this.headers[field.toLowerCase()] || '';
   }

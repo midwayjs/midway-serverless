@@ -87,11 +87,11 @@ export const request = {
    * faas origin context object
    */
   get getOriginEvent(): FaaSOriginContext {
-    return this.req.getOriginEvent();
+    return this.req.getOriginEvent?.() || {};
   },
 
   get originContext() {
-    return this.req.getOriginContext();
+    return this.req.getOriginContext?.() || {};
   },
 
   get ip() {

@@ -149,7 +149,7 @@ export const response = {
    * @api public
    */
   set(field, val?) {
-    if (typeof field !== 'object') {
+    if (val) {
       if (Array.isArray(val))
         val = val.map(v => (typeof v === 'string' ? v : String(v)));
       else if (typeof val !== 'string') val = String(val);
