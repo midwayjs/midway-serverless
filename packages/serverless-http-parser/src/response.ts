@@ -2,11 +2,14 @@ import * as getType from 'cache-content-type';
 import * as assert from 'assert';
 import * as statuses from 'statuses';
 import { is as typeis } from 'type-is';
+import * as encodeUrl from 'encodeurl';
+import * as escape from 'escape-html';
 
 export const response = {
   explicitStatus: null,
   _body: null,
   res: null,
+  ctx: null,
 
   /**
    * Return response header.
@@ -318,6 +321,45 @@ export const response = {
 
   is(type, ...types) {
     return typeis(this.type, type, ...types);
+  },
+  /**
+   * Perform a 302 redirect to `url`.
+   *
+   * The string "back" is special-cased
+   * to provide Referrer support, when Referrer
+   * is not present `alt` or "/" is used.
+   *
+   * Examples:
+   *
+   *    this.redirect('back');
+   *    this.redirect('back', '/index.html');
+   *    this.redirect('/login');
+   *    this.redirect('http://google.com');
+   *
+   * @param {String} url
+   * @param {String} [alt]
+   * @api public
+   */
+
+  redirect(url: string, alt?: string) {
+    // location
+    if ('back' === url) url = this.ctx.get('Referrer') || alt || '/';
+    this.set('Location', encodeUrl(url));
+
+    // status
+    if (!statuses.redirect[this.status]) this.status = 302;
+
+    // html
+    if (this.ctx.accepts('html')) {
+      url = escape(url);
+      this.type = 'text/html; charset=utf-8';
+      this.body = `Redirecting to <a href="${url}">${url}</a>.`;
+      return;
+    }
+
+    // text
+    this.type = 'text/plain; charset=utf-8';
+    this.body = `Redirecting to ${url}.`;
   },
 
   end() {},

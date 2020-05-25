@@ -172,4 +172,8 @@ export const context = {
     // throw err and runtime will proxy this error
     throw err;
   },
+
+  redirect(url: string, alt?: string) {
+    return this.response.redirect(url, alt);
+  },
 };
