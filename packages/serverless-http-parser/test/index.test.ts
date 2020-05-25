@@ -436,7 +436,7 @@ describe('test http parser', () => {
   });
 });
 
-function escape(html){
+function escape(html) {
   return String(html)
     .replace(/&/g, '&amp;')
     .replace(/"/g, '&quot;')
