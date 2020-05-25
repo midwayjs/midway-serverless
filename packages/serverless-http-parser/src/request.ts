@@ -1,6 +1,9 @@
 import { is as typeis } from 'type-is';
 import * as accepts from 'accepts';
 import { FaaSOriginContext } from '@midwayjs/faas-typings/typings/common';
+import * as qs from 'querystring';
+
+const BODY = Symbol.for('ctx#body');
 
 export const request = {
   _accept: null,
@@ -123,7 +126,40 @@ export const request = {
   },
 
   get body() {
-    return this.req.body;
+    if (this.req.bodyParsed) {
+      return this.req.body;
+    }
+
+    let body = this.req.body;
+
+    if (this[BODY]) {
+      return this[BODY];
+    }
+
+    if (Buffer.isBuffer(body)) {
+      body = Buffer.from(body).toString();
+    }
+
+    switch (typeis(this.get('content-type'), ['urlencoded', 'json'])) {
+      case 'json':
+        try {
+          this[BODY] = JSON.parse(body);
+        } catch {
+          throw new Error('invalid json received');
+        }
+        break;
+      case 'urlencoded':
+        try {
+          this[BODY] = qs.parse(body);
+        } catch {
+          throw new Error('invalid urlencoded received');
+        }
+        break;
+      default:
+        this[BODY] = body;
+    }
+
+    return this[BODY];
   },
 
   get params() {

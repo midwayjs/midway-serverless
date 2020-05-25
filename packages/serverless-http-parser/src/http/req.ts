@@ -10,7 +10,7 @@ const BODY = Symbol.for('ctx#body');
 export class HTTPRequest {
   private originContext;
   private originEvent;
-  private bodyParsed = false;
+  public bodyParsed = false;
 
   constructor(event, context) {
     this.originContext = context;
