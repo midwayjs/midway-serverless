@@ -124,16 +124,13 @@ describe('test http parser', () => {
 
   it('should parser fc http event', () => {
     const app = new Application();
-    const req = new HTTPRequest(
-      Object.assign(require('./resource/fc_http.json'), {
-        body: Buffer.from(
-          JSON.stringify({
-            a: '1',
-          })
-        ),
-      }),
-      require('./resource/fc_ctx.json')
-    );
+    const req = Object.assign(require('./resource/fc_http.json'), {
+      body: Buffer.from(
+        JSON.stringify({
+          a: '1',
+        })
+      ),
+    });
     const res = new HTTPResponse();
     const context = app.createContext(req, res);
 

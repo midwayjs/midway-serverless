@@ -61,7 +61,7 @@ export class HTTPRequest {
   }
 
   get pathParameters() {
-    return this[EVENT].pathParameters || [];
+    return this[EVENT].pathParameters || {};
   }
 
   get method() {

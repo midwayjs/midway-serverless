@@ -1,6 +1,6 @@
 import { is as typeis } from 'type-is';
 import * as accepts from 'accepts';
-import { FaaSOriginContext } from '@midwayjs/faas-typings/typings/common';
+import { FaaSOriginContext } from '@midwayjs/faas-typings';
 import * as qs from 'querystring';
 
 const BODY = Symbol.for('ctx#body');
@@ -98,7 +98,7 @@ export const request = {
   },
 
   get ip() {
-    return this.req.ip;
+    return this.req?.clientIP || this.req.ip;
   },
 
   get url() {
@@ -122,7 +122,7 @@ export const request = {
   },
 
   get query() {
-    return this.req.query;
+    return this.req?.queries || this.req.query;
   },
 
   get body() {
@@ -163,7 +163,7 @@ export const request = {
   },
 
   get params() {
-    return this.req.pathParameters;
+    return this.req.pathParameters || {};
   },
 
   is(type, ...types) {
