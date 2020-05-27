@@ -11,6 +11,7 @@ describe('test http parser', () => {
     );
     const res = new HTTPResponse();
     const context = app.createContext(req, res);
+    assert(context.toJSON().request);
 
     // alias
     assert(context.req !== context.request);

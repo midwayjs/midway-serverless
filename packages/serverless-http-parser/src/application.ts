@@ -2,6 +2,7 @@ import { context } from './context';
 import { request } from './request';
 import { response } from './response';
 import * as compose from 'koa-compose';
+import * as only from 'only';
 
 export class Application {
   proxy = false;
@@ -77,5 +78,28 @@ export class Application {
         })
         .catch(onerror);
     };
+  }
+
+  /**
+   * Return JSON representation.
+   * We only bother showing settings.
+   *
+   * @return {Object}
+   * @api public
+   */
+
+  toJSON() {
+    return only(this, ['subdomainOffset', 'proxy', 'env']);
+  }
+
+  /**
+   * Inspect implementation.
+   *
+   * @return {Object}
+   * @api public
+   */
+
+  inspect() {
+    return this.toJSON();
   }
 }
