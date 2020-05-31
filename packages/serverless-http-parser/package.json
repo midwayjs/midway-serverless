@@ -16,7 +16,8 @@
     "type-is": "^1.6.18"
   },
   "devDependencies": {
-    "midway-bin": "^2.0.0"
+    "midway-bin": "^2.0.0",
+    "mm": "^3.2.0"
   },
   "engines": {
     "node": ">= 10"
