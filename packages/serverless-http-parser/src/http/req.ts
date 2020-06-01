@@ -58,7 +58,7 @@ export class HTTPRequest {
   }
 
   set url(newUrl: string) {
-    const newUrlInfo = parseurl({ url: newUrl});
+    const newUrlInfo = parseurl({ url: newUrl });
     this[EVENT].url = newUrl;
     this[EVENT].path = newUrlInfo.pathname;
     this[EVENT].queries = qs.parse(newUrlInfo.query);
