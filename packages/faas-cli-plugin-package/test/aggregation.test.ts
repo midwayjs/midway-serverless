@@ -7,7 +7,7 @@ import * as assert from 'assert';
 
 describe('/test/package.test.ts', () => {
   describe('integration project build', () => {
-    it.only('aggregation package', async () => {
+    it('aggregation package', async () => {
       const baseDir = resolve(__dirname, './fixtures/aggregation');
       const buildDir = resolve(baseDir, './.serverless');
       await remove(buildDir);
