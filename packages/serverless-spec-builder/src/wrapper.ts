@@ -2,7 +2,7 @@ import { join } from 'path';
 import { writeFileSync, existsSync } from 'fs';
 import { render } from 'ejs';
 import { getLayers } from './utils';
-export const wrapperContent = `const { FaaSStarter } = require('@midwayjs/faas');
+export const wrapperContent = `const { FaaSStarter } = require('<%=faasModName %>');
 const { asyncWrapper, start } = require('<%=starter %>');
 <% layerDeps.forEach(function(layer){ %>const <%=layer.name%> = require('<%=layer.path%>');
 <% }); %>
@@ -34,18 +34,15 @@ exports.<%=handlerData.name%> = asyncWrapper(async (...args) => {
   <% if (handlerData.handler) { %>
   return runtime.asyncEvent(starter.handleInvokeWrapper('<%=handlerData.handler%>'))(...args);
   <% } else { %>
+  const picomatch = require('picomatch');
   const allHandlers = <%-JSON.stringify(handlerData.handlers)%>;
   return runtime.asyncEvent(async (ctx) => {
     let handler = null;
     let ctxPath = ctx && ctx.path || '';
     if (ctxPath) {
       handler = allHandlers.find(handler => {
-        return ctxPath.indexOf(handler.path) === 0;
+        return picomatch.isMatch(ctxPath, handler.router)
       });
-    }
-
-    if (!handler) {
-      handler = allHandlers[allHandlers.length - 1];
     }
 
     if (handler) {
@@ -65,6 +62,7 @@ export function writeWrapper(options: {
   starter: string;
   cover?: boolean;
   loadDirectory?: string[];
+  faasModName?: string;
 }) {
   const {
     service,
@@ -72,6 +70,7 @@ export function writeWrapper(options: {
     starter,
     baseDir,
     cover,
+    faasModName,
     loadDirectory = [],
   } = options;
   const files = {};
@@ -114,6 +113,7 @@ export function writeWrapper(options: {
     const layers = getLayers(service.layers, ...files[file].originLayers);
     const content = render(wrapperContent, {
       starter,
+      faasModName: faasModName || '@midwayjs/faas',
       loadDirectory,
       handlers: files[file].handlers,
       ...layers,
@@ -128,18 +128,17 @@ export function formetAggregationHandlers(handlers) {
   }
   return handlers
     .map(handler => {
-      const path = handler.path.replace(/\**$/, '');
       return {
         handler: handler.handler,
-        path,
-        level: path.split('/').length - 1,
+        router: handler.path,
+        pureRouter:  handler.path.replace(/\**$/, ''),
+        level: handler.path.split('/').length - 1,
       };
     })
     .sort((handlerA, handlerB) => {
-      const levelDiff = handlerB.level - handlerA.level;
-      if (levelDiff === 0) {
-        return handlerB.path.length - handlerA.path.length;
+      if (handlerA.pureRouter === handlerB.pureRouter) {
+        return handlerA.router.length - handlerB.router.length;
       }
-      return levelDiff;
+      return handlerB.level - handlerA.level;
     });
 }
