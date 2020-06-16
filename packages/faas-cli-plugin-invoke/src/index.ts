@@ -392,7 +392,7 @@ export class FaaSInvokePlugin extends BasePlugin {
           layers: this.core.service.layers,
           functions: this.core.service.functions,
         },
-        faasModName:  process.env.MidwayModuleName,
+        faasModName: process.env.MidwayModuleName,
         distDir: this.buildDir,
         starter: this.getPlatformPath(starterName),
         loadDirectory: isTsMode

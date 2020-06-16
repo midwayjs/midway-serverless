@@ -131,7 +131,7 @@ export function formetAggregationHandlers(handlers) {
       return {
         handler: handler.handler,
         router: handler.path,
-        pureRouter:  handler.path.replace(/\**$/, ''),
+        pureRouter: handler.path.replace(/\**$/, ''),
         level: handler.path.split('/').length - 1,
       };
     })
