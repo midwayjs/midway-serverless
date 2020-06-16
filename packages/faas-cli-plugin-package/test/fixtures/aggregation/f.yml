@@ -61,7 +61,7 @@ functions:
 
 custom:
   customDomain:
-    domainName: 'aggregation.exanple.com'
+    domainName: 'fctest.iam.gy'
 
 aggregation:
   api:
