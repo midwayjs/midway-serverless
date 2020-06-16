@@ -48,7 +48,9 @@ exports.<%=handlerData.name%> = asyncWrapper(async (...args) => {
     if (handler) {
       return starter.handleInvokeWrapper(handler.handler)(ctx);
     }
-    return 'unhandler path: ' + ctxPath + '; handlerInfo: ' + JSON.stringify(allHandlers);
+    ctx.status = 404;
+    ctx.set('Content-Type', 'text/html');
+    return '<h1>404 Page Not Found</h1><hr />Request path: ' + ctxPath + '<hr /><div style="font-size: 12px;color: #999999;">Powered by <a href="https://github.com/midwayjs/midway-faas">Midway</a></div>';
   })(...args);
   <% } %>
 });
@@ -130,7 +132,7 @@ export function formetAggregationHandlers(handlers) {
     .map(handler => {
       return {
         handler: handler.handler,
-        router: handler.path,
+        router: handler.path.replace(/\*/g, '**'), // picomatch use **
         pureRouter: handler.path.replace(/\**$/, ''),
         level: handler.path.split('/').length - 1,
       };
