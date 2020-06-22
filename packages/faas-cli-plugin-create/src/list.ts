@@ -25,7 +25,7 @@ export const templateList = {
     group: 'Examples',
   },
   'faas-rds-mysql': {
-    desc: 'A serverless example with rds and mysql',
+    desc: 'A serverless example building a todo list with rds and mysql',
     package: '@midwayjs-examples/faas-with-rds',
     group: 'Examples',
   },
