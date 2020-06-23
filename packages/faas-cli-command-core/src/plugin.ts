@@ -35,7 +35,11 @@ export class BasePlugin implements IPluginInstance {
         return key.endsWith(`:${type}`);
       });
       if (filterKey.length > 1) {
-        console.log(`[Core] Get store by '${type}' matches ${filterKey.length} (${filterKey.join(', ')}), current use '${filterKey[0]}'`);
+        console.log(
+          `[Core] Get store by '${type}' matches ${
+            filterKey.length
+          } (${filterKey.join(', ')}), current use '${filterKey[0]}'`
+        );
       }
       return this.core.store.get(filterKey[0]);
     }
