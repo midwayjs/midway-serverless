@@ -28,6 +28,16 @@ export class BasePlugin implements IPluginInstance {
   }
 
   public getStore(type: string, name?: string) {
-    return this.core.store.get(`${name || this.name}:${type}`);
+    if (name) {
+      return this.core.store.get(`${name}:${type}`);
+    } else {
+      const filterKey = [...this.core.store.keys()].filter(key => {
+        return key.endsWith(`:${type}`);
+      });
+      if (filterKey.length > 1) {
+        console.log(`[Core] Get store by '${type}' matches ${filterKey.length} (${filterKey.join(', ')}), current use '${filterKey[0]}'`);
+      }
+      return this.core.store.get(filterKey[0]);
+    }
   }
 }
