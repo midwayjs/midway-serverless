@@ -23,25 +23,12 @@ export class BasePlugin implements IPluginInstance {
     return this.constructor.name;
   }
 
-  public setStore(type: string, value: any) {
-    this.core.store.set(`${this.name}:${type}`, value);
+  public setStore(type: string, value: any, isGlobal?: boolean) {
+    const name = isGlobal ? 'global' : this.name;
+    this.core.store.set(`${name}:${type}`, value);
   }
 
   public getStore(type: string, name?: string) {
-    if (name) {
-      return this.core.store.get(`${name}:${type}`);
-    } else {
-      const filterKey = [...this.core.store.keys()].filter(key => {
-        return key.endsWith(`:${type}`);
-      });
-      if (filterKey.length > 1) {
-        console.log(
-          `[Core] Get store by '${type}' matches ${
-            filterKey.length
-          } (${filterKey.join(', ')}), current use '${filterKey[0]}'`
-        );
-      }
-      return this.core.store.get(filterKey[0]);
-    }
+    return this.core.store.get(`${name || this.name}:${type}`);
   }
 }

@@ -8,7 +8,7 @@ class StoreGet extends BasePlugin {
   };
   hooks = {
     'after:store:main': async () => {
-      this.setStore('get', this.getStore('set'));
+      this.setStore('get', this.getStore('set', 'StoreSet'));
     },
   };
 }
