@@ -23,12 +23,12 @@ export class BasePlugin implements IPluginInstance {
     return this.constructor.name;
   }
 
-  public setStore(type: string, value: any, isGlobal?: boolean) {
-    const name = isGlobal ? 'global' : this.name;
-    this.core.store.set(`${name}:${type}`, value);
+  public setStore(key: string, value: any, isGlobalScope?: boolean) {
+    const scope = isGlobalScope ? 'global' : this.name;
+    this.core.store.set(`${scope}:${key}`, value);
   }
 
-  public getStore(type: string, name?: string) {
-    return this.core.store.get(`${name || this.name}:${type}`);
+  public getStore(key: string, scope?: string) {
+    return this.core.store.get(`${scope || this.name}:${key}`);
   }
 }
